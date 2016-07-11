@@ -11,7 +11,10 @@
         Problem displaying the canvas!
     </canvas>
     <script>
-        Game.main();
+        window.onload = function() {
+            Game.initialize('black', 'white', 50);
+            Game.main();
+        };
     </script>
 </body>
 </html>

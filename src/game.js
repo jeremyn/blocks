@@ -3,18 +3,6 @@
  */
 var Game = {};
 
-Game.borderColor = 'black';
-Game.emptyColor = 'white';
-
-Game.squareDim = 50;
-
-Game.blocks = [
-    [
-        [Game.emptyColor, 'red', 'red', Game.emptyColor],
-        [Game.emptyColor, 'red', 'red', Game.emptyColor]
-    ]
-];
-
 Game.getEmptyGrid = function(gridWidth, gridHeight) {
     if ((gridWidth % 2 !== 0) ||
         (gridHeight % 2 !== 0)) {
@@ -23,13 +11,49 @@ Game.getEmptyGrid = function(gridWidth, gridHeight) {
 
     var grid = [];
     for (var i = 0; i < gridHeight; i++) {
-        grid.push(Array(gridWidth).fill(this.emptyColor));
+        grid.push(Array(gridWidth).fill(Game.emptyColor));
     }
     return grid;
 };
 
-Game.drawGrid = function(ctx, grid, squareDim) {
-    ctx.strokeStyle = this.borderColor;
+Game.getBlocks = function(emptyColor) {
+    return [
+        [
+            [emptyColor, 'red', 'red', emptyColor],
+            [emptyColor, 'red', 'red', emptyColor]
+        ]
+    ];
+};
+
+Game.initialize = function(borderColor, emptyColor, squareDim) {
+    Game.borderColor = borderColor;
+    Game.emptyColor = emptyColor;
+    Game.squareDim = squareDim;
+
+    Game.display = document.getElementById('display');
+    Game.ctx = Game.display.getContext('2d');
+    Game.grid = Game.getEmptyGrid(
+        Game.display.width / Game.squareDim,
+        Game.display.height / Game.squareDim
+    );
+    Game.blocks = Game.getBlocks(Game.emptyColor);
+};
+
+Game.update = function(grid) {
+    var newBlockStartPosition = (grid[0].length / 2) - 2;
+
+    var newBlock = Game.blocks[
+        Math.floor(Math.random() * (Game.blocks.length))
+        ];
+
+    for (var i = 0; i < newBlock[0].length; i++) {
+        grid[0][newBlockStartPosition + i] = newBlock[0][i];
+        grid[1][newBlockStartPosition + i] = newBlock[1][i];
+    }
+};
+
+Game.draw = function(ctx, grid, squareDim) {
+    ctx.strokeStyle = Game.borderColor;
     for (var rowNum = 0; rowNum < grid.length; rowNum++) {
         for (var colNum = 0; colNum < grid[0].length; colNum++) {
             ctx.fillStyle = grid[rowNum][colNum];
@@ -50,25 +74,6 @@ Game.drawGrid = function(ctx, grid, squareDim) {
 };
 
 Game.main = function() {
-    var display = document.getElementById('display');
-
-    var grid = this.getEmptyGrid(
-        display.width / this.squareDim,
-        display.height / this.squareDim
-    );
-
-    var ctx = display.getContext('2d');
-
-    var newBlockStartPosition = (grid[0].length / 2) - 2;
-
-    var newBlock = Game.blocks[
-        Math.floor(Math.random() * (Game.blocks.length))
-    ];
-
-    for (var i = 0; i < newBlock[0].length; i++) {
-        grid[0][newBlockStartPosition+i] = newBlock[0][i];
-        grid[1][newBlockStartPosition+i] = newBlock[1][i];
-    }
-
-    this.drawGrid(ctx, grid, this.squareDim);
+    Game.update(Game.grid);
+    Game.draw(Game.ctx, Game.grid, Game.squareDim);
 };
