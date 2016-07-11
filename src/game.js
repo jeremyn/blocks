@@ -76,4 +76,5 @@ Game.draw = function(ctx, grid, squareDim) {
 Game.main = function() {
     Game.update(Game.grid);
     Game.draw(Game.ctx, Game.grid, Game.squareDim);
+    window.requestAnimationFrame(Game.main);
 };
