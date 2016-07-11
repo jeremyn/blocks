@@ -9,8 +9,8 @@ Game.emptyColor = 'white';
 Game.squareDim = 50;
 
 Game.getEmptyGrid = function(gridWidth, gridHeight) {
-    if ((parseInt(gridWidth) !== gridWidth) ||
-        (parseInt(gridHeight) !== gridHeight)) {
+    if ((gridWidth % 2 !== 0) ||
+        (gridHeight % 2 !== 0)) {
         throw new Error('bad grid dimensions');
     }
 
