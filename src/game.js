@@ -1,6 +1,7 @@
 /* Copyright 2016, Jeremy Nation <jeremy@jeremynation.me>
  * Released under the GPLv3.
  */
+'use strict';
 var Game = {};
 
 Game.initialize = function(borderColor, squareDim) {
