@@ -7,6 +7,11 @@ Game.initialize = function(borderColor, squareDim) {
     Game.borderColor = borderColor;
     Game.squareDim = squareDim;
 
+    // in milliseconds
+    Game.downTickDuration = 500;
+
+    Game.lastDownTick = 0;
+
     Game.directions = {
         DOWN: 'down',
         LEFT: 'left',
@@ -132,16 +137,21 @@ Game.moveActiveBlock = function(grid, direction) {
     return funcStatus;
 };
 
-Game.update = function(grid) {
+Game.update = function(grid, timeFrame) {
     var keepGoing = true;
-    var moveWorked = Game.moveActiveBlock(grid, Game.directions.DOWN);
-    if (!moveWorked) {
-        for (var rowNum = 0; rowNum < grid.length; rowNum++) {
-            for (var colNum = 0; colNum < grid[0].length; colNum++) {
-                grid[rowNum][colNum]['isActive'] = false;
+
+    if (timeFrame > (Game.lastDownTick + Game.downTickDuration)) {
+        Game.lastDownTick = timeFrame;
+        var moveWorked = Game.moveActiveBlock(grid, Game.directions.DOWN);
+
+        if (!moveWorked) {
+            for (var rowNum = 0; rowNum < grid.length; rowNum++) {
+                for (var colNum = 0; colNum < grid[0].length; colNum++) {
+                    grid[rowNum][colNum]['isActive'] = false;
+                }
             }
+            keepGoing = Game.addNewBlock(grid, Game.allBlocks);
         }
-        keepGoing = Game.addNewBlock(grid, Game.allBlocks);
     }
     return keepGoing;
 };
@@ -167,8 +177,8 @@ Game.draw = function(ctx, grid, squareDim) {
     }
 };
 
-Game.main = function() {
-    var keepGoing = Game.update(Game.grid);
+Game.main = function(timeFrame) {
+    var keepGoing = Game.update(Game.grid, timeFrame);
     Game.draw(Game.ctx, Game.grid, Game.squareDim);
     if (keepGoing) {
         window.requestAnimationFrame(Game.main);
