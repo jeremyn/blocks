@@ -40,12 +40,14 @@ Game.initialize = function(borderColor, squareDim) {
 
     Game.gridStates = {
         EMPTY: 'empty',
-        SQUARE: 'square'
+        SQUARE: 'square',
+        Z: 'z'
     };
 
     Game.colors = {};
     Game.colors[Game.gridStates.EMPTY] = 'white';
     Game.colors[Game.gridStates.SQUARE] = 'red';
+    Game.colors[Game.gridStates.Z] = 'aqua';
 
     Game.display = document.getElementById('display');
 
@@ -71,6 +73,10 @@ Game.initialize = function(borderColor, squareDim) {
         [
             [Game.gridStates.SQUARE, Game.gridStates.SQUARE],
             [Game.gridStates.SQUARE, Game.gridStates.SQUARE]
+        ],
+        [
+            [Game.gridStates.Z, Game.gridStates.Z, Game.gridStates.EMPTY],
+            [Game.gridStates.EMPTY, Game.gridStates.Z, Game.gridStates.Z]
         ]
     ];
 
@@ -89,12 +95,16 @@ Game.addNewBlock = function(grid, allBlocks) {
     var startColNum = (grid[0].length / 2) - Math.floor((newBlock[0].length / 2));
     for (var rowNum = 0; rowNum < newBlock.length; rowNum++) {
         for (var colNum = 0; colNum < newBlock[0].length; colNum++) {
-            if (grid[rowNum][startColNum + colNum]['state'] === Game.gridStates.EMPTY) {
-                grid[rowNum][startColNum + colNum]['state'] = newBlock[0][colNum];
-                grid[rowNum][startColNum + colNum]['isActive'] = true;
-            } else {
-                funcStatus = false;
-                break;
+            var gridCell = grid[rowNum][startColNum + colNum];
+            var blockCellState = newBlock[rowNum][colNum];
+            if (blockCellState !== Game.gridStates.EMPTY) {
+                if (gridCell['state'] === Game.gridStates.EMPTY) {
+                    gridCell['state'] = blockCellState;
+                    gridCell['isActive'] = true;
+                } else {
+                    funcStatus = false;
+                    break;
+                }
             }
         }
         if (!funcStatus) {
