@@ -25,6 +25,10 @@ Game.initialize = function(borderColor, squareDim) {
             'previous': false,
             'current': false
         },
+        clockwise: {
+            'previous': false,
+            'current': false
+        },
         counterClockwise: {
             'previous': false,
             'current': false
@@ -40,6 +44,7 @@ Game.initialize = function(borderColor, squareDim) {
         DOWN: 'down',
         LEFT: 'left',
         RIGHT: 'right',
+        CLOCKWISE: 'clockwise',
         COUNTERCLOCKWISE: 'counterclockwise'
     };
 
@@ -198,25 +203,38 @@ Game.moveActiveBlock = function(grid, direction) {
     return Game.updateActiveBlockPosition(grid, oldActiveCoords, newActiveCoords);
 };
 
+Game.getCounterClockwiseRotatedCoords = function(oldCoords) {
+    var rows = oldCoords.map(function(c) { return c[0]; });
+    rows.sort(function(a,b){ return a-b; });
+    var cols = oldCoords.map(function(c) { return c[1]; });
+    cols.sort(function(a,b){ return a-b; });
+    var newCoords = [];
+    for (var i = 0; i < oldCoords.length; i++) {
+        var newRow, newCol;
+        if (cols.length >= rows.length) {
+            newRow = rows[0]+((cols[cols.length-1]-cols[0])-(oldCoords[i][1]-cols[0]));
+            newCol = cols[0]+(oldCoords[i][0]-rows[0]);
+        } else {
+            newRow = rows[0]+(oldCoords[i][1]-cols[0]);
+            newCol = cols[0]+((rows[rows.length-1]-rows[0])-(oldCoords[i][0]-rows[0]));
+        }
+        newCoords.push([newRow, newCol]);
+    }
+    return newCoords;
+};
+
 Game.rotateActiveBlock = function(grid, direction) {
     var oldActiveCoords = Game.getActiveBlockCoords(grid);
-    var rows = oldActiveCoords.map(function(c) {return c[0];});
-    rows.sort(function(a,b){ return a-b; });
-    var cols = oldActiveCoords.map(function(c) {return c[1];});
-    cols.sort(function(a,b){ return a-b; });
     var newActiveCoords = [];
     for (var i = 0; i < oldActiveCoords.length; i++) {
-        var newRow, newCol;
         if (direction === Game.directions.COUNTERCLOCKWISE) {
-            if (cols.length >= rows.length) {
-                newRow = rows[0]+((cols[cols.length-1]-cols[0])-(oldActiveCoords[i][1]-cols[0]));
-                newCol = cols[0]+(oldActiveCoords[i][0]-rows[0]);
-            } else {
-                newRow = rows[0]+(oldActiveCoords[i][1]-cols[0]);
-                newCol = cols[0]+((rows[rows.length-1]-rows[0])-(oldActiveCoords[i][0]-rows[0]));
+            newActiveCoords = Game.getCounterClockwiseRotatedCoords(oldActiveCoords);
+        } else if (direction === Game.directions.CLOCKWISE) {
+            newActiveCoords = oldActiveCoords;
+            for (i = 0; i < 3; i++) {
+                newActiveCoords = Game.getCounterClockwiseRotatedCoords(newActiveCoords);
             }
         }
-        newActiveCoords.push([newRow, newCol]);
     }
 
     return Game.updateActiveBlockPosition(grid, oldActiveCoords, newActiveCoords);
@@ -261,6 +279,9 @@ Game.update = function(grid, timeFrame) {
     } else if (Game.keyPressed['down']['current'] &&
         !Game.keyPressed['down']['previous']) {
         Game.moveActiveBlock(grid, Game.directions.DOWN);
+    } else if (Game.keyPressed['clockwise']['current'] &&
+        !Game.keyPressed['clockwise']['previous']) {
+        Game.rotateActiveBlock(grid, Game.directions.CLOCKWISE);
     } else if (Game.keyPressed['counterClockwise']['current'] &&
         !Game.keyPressed['counterClockwise']['previous']) {
         Game.rotateActiveBlock(grid, Game.directions.COUNTERCLOCKWISE);
@@ -269,6 +290,7 @@ Game.update = function(grid, timeFrame) {
     Game.keyPressed['left']['previous'] = Game.keyPressed['left']['current'];
     Game.keyPressed['right']['previous'] = Game.keyPressed['right']['current'];
     Game.keyPressed['down']['previous'] = Game.keyPressed['down']['current'];
+    Game.keyPressed['clockwise']['previous'] = Game.keyPressed['clockwise']['current'];
     Game.keyPressed['counterClockwise']['previous'] = Game.keyPressed['counterClockwise']['current'];
 
     if (timeFrame > (Game.lastDownTick + Game.downTickDuration)) {
@@ -312,13 +334,15 @@ Game.draw = function(ctx, grid, squareDim) {
 };
 
 Game.keyDownHandler = function(e) {
-    if (e.keyCode === 37) {
+    if (e.keyCode === 37) {  // ArrowLeft
         Game.keyPressed['left']['current'] = true;
-    } else if (e.keyCode === 39) {
+    } else if (e.keyCode === 39) {  // ArrowRight
         Game.keyPressed['right']['current'] = true;
-    } else if (e.keyCode === 40) {
+    } else if (e.keyCode === 40) {  // ArrowDown
         Game.keyPressed['down']['current'] = true;
-    } else if (e.keyCode === 90) {
+    } else if (e.keyCode === 67) {  // c
+        Game.keyPressed['clockwise']['current'] = true;
+    } else if (e.keyCode === 90) {  // z
         Game.keyPressed['counterClockwise']['current'] = true;
     }
 };
@@ -330,6 +354,8 @@ Game.keyUpHandler = function(e) {
         Game.keyPressed['right']['current'] = false;
     } else if (e.keyCode === 40) {
         Game.keyPressed['down']['current'] = false;
+    } else if (e.keyCode === 67) {
+        Game.keyPressed['clockwise']['current'] = false;
     } else if (e.keyCode === 90) {
         Game.keyPressed['counterClockwise']['current'] = false;
     }
