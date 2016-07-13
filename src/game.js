@@ -13,15 +13,19 @@ Game.initialize = function(borderColor, squareDim) {
     document.addEventListener('keydown', Game.keyDownHandler, false);
     document.addEventListener('keyup', Game.keyUpHandler, false);
     Game.keyPressed = {
-        leftArrow: {
+        left: {
             'previous': false,
             'current': false
         },
-        rightArrow: {
+        right: {
             'previous': false,
             'current': false
         },
-        downArrow: {
+        down: {
+            'previous': false,
+            'current': false
+        },
+        counterClockwise: {
             'previous': false,
             'current': false
         }
@@ -35,7 +39,8 @@ Game.initialize = function(borderColor, squareDim) {
     Game.directions = {
         DOWN: 'down',
         LEFT: 'left',
-        RIGHT: 'right'
+        RIGHT: 'right',
+        COUNTERCLOCKWISE: 'counterclockwise'
     };
 
     Game.gridStates = {
@@ -115,30 +120,19 @@ Game.addNewBlock = function(grid, allBlocks) {
     return funcStatus;
 };
 
-Game.moveActiveBlock = function(grid, direction) {
-    var funcStatus = true;
-
-    var oldActiveCoords = [];
+Game.getActiveBlockCoords = function(grid) {
+    var activeBlockCoords = [];
     for (var rowNum = 0; rowNum < grid.length; rowNum++) {
         for (var colNum = 0; colNum < grid[0].length; colNum++) {
             if (grid[rowNum][colNum]['isActive']) {
-                oldActiveCoords.push([rowNum, colNum])
+                activeBlockCoords.push([rowNum, colNum])
             }
         }
     }
+    return activeBlockCoords;
+};
 
-    var moveFunctions = {};
-    moveFunctions[Game.directions.LEFT] = function(coord) {
-        return [coord[0], coord[1] - 1];
-    };
-    moveFunctions[Game.directions.RIGHT] = function(coord) {
-        return [coord[0], coord[1] + 1];
-    };
-    moveFunctions[Game.directions.DOWN] = function(coord) {
-        return [coord[0] + 1, coord[1]];
-    };
-    var newActiveCoords = oldActiveCoords.map(moveFunctions[direction]);
-
+Game.updateActiveBlockPosition = function(grid, oldActiveCoords, newActiveCoords) {
     var moveIsAllowed = true;
     for (var i = 0; i < newActiveCoords.length; i++) {
         var newCoord = newActiveCoords[i];
@@ -166,9 +160,49 @@ Game.moveActiveBlock = function(grid, direction) {
             grid[newActiveCoords[i][0]][newActiveCoords[i][1]]['isActive'] = true;
         }
     }
+    return moveIsAllowed;
+};
 
-    funcStatus = moveIsAllowed;
-    return funcStatus;
+Game.moveActiveBlock = function(grid, direction) {
+    var oldActiveCoords = Game.getActiveBlockCoords(grid);
+
+    var moveFunctions = {};
+    moveFunctions[Game.directions.LEFT] = function(coord) {
+        return [coord[0], coord[1] - 1];
+    };
+    moveFunctions[Game.directions.RIGHT] = function(coord) {
+        return [coord[0], coord[1] + 1];
+    };
+    moveFunctions[Game.directions.DOWN] = function(coord) {
+        return [coord[0] + 1, coord[1]];
+    };
+    var newActiveCoords = oldActiveCoords.map(moveFunctions[direction]);
+
+    return Game.updateActiveBlockPosition(grid, oldActiveCoords, newActiveCoords);
+};
+
+Game.rotateActiveBlock = function(grid, direction) {
+    var oldActiveCoords = Game.getActiveBlockCoords(grid);
+    var rows = oldActiveCoords.map(function(c) {return c[0];});
+    rows.sort(function(a,b){ return a-b; });
+    var cols = oldActiveCoords.map(function(c) {return c[1];});
+    cols.sort(function(a,b){ return a-b; });
+    var newActiveCoords = [];
+    for (var i = 0; i < oldActiveCoords.length; i++) {
+        var newRow, newCol;
+        if (direction === Game.directions.COUNTERCLOCKWISE) {
+            if (cols.length >= rows.length) {
+                newRow = rows[0]+((cols[cols.length-1]-cols[0])-(oldActiveCoords[i][1]-cols[0]));
+                newCol = cols[0]+(oldActiveCoords[i][0]-rows[0]);
+            } else {
+                newRow = rows[0]+(oldActiveCoords[i][1]-cols[0]);
+                newCol = cols[0]+((rows[rows.length-1]-rows[0])-(oldActiveCoords[i][0]-rows[0]));
+            }
+        }
+        newActiveCoords.push([newRow, newCol]);
+    }
+
+    return Game.updateActiveBlockPosition(grid, oldActiveCoords, newActiveCoords);
 };
 
 Game.clearMatchedRows = function(grid) {
@@ -201,20 +235,24 @@ Game.clearMatchedRows = function(grid) {
 Game.update = function(grid, timeFrame) {
     var keepGoing = true;
 
-    if (Game.keyPressed['leftArrow']['current'] &&
-        !Game.keyPressed['leftArrow']['previous']) {
+    if (Game.keyPressed['left']['current'] &&
+        !Game.keyPressed['left']['previous']) {
         Game.moveActiveBlock(grid, Game.directions.LEFT);
-    } else if (Game.keyPressed['rightArrow']['current'] &&
-        !Game.keyPressed['rightArrow']['previous']) {
+    } else if (Game.keyPressed['right']['current'] &&
+        !Game.keyPressed['right']['previous']) {
         Game.moveActiveBlock(grid, Game.directions.RIGHT);
-    } else if (Game.keyPressed['downArrow']['current'] &&
-        !Game.keyPressed['downArrow']['previous']) {
+    } else if (Game.keyPressed['down']['current'] &&
+        !Game.keyPressed['down']['previous']) {
         Game.moveActiveBlock(grid, Game.directions.DOWN);
+    } else if (Game.keyPressed['counterClockwise']['current'] &&
+        !Game.keyPressed['counterClockwise']['previous']) {
+        Game.rotateActiveBlock(grid, Game.directions.COUNTERCLOCKWISE);
     }
 
-    Game.keyPressed['leftArrow']['previous'] = Game.keyPressed['leftArrow']['current'];
-    Game.keyPressed['rightArrow']['previous'] = Game.keyPressed['rightArrow']['current'];
-    Game.keyPressed['downArrow']['previous'] = Game.keyPressed['downArrow']['current'];
+    Game.keyPressed['left']['previous'] = Game.keyPressed['left']['current'];
+    Game.keyPressed['right']['previous'] = Game.keyPressed['right']['current'];
+    Game.keyPressed['down']['previous'] = Game.keyPressed['down']['current'];
+    Game.keyPressed['counterClockwise']['previous'] = Game.keyPressed['counterClockwise']['current'];
 
     if (timeFrame > (Game.lastDownTick + Game.downTickDuration)) {
         Game.lastDownTick = timeFrame;
@@ -258,21 +296,25 @@ Game.draw = function(ctx, grid, squareDim) {
 
 Game.keyDownHandler = function(e) {
     if (e.keyCode === 37) {
-        Game.keyPressed['leftArrow']['current'] = true;
+        Game.keyPressed['left']['current'] = true;
     } else if (e.keyCode === 39) {
-        Game.keyPressed['rightArrow']['current'] = true;
+        Game.keyPressed['right']['current'] = true;
     } else if (e.keyCode === 40) {
-        Game.keyPressed['downArrow']['current'] = true;
+        Game.keyPressed['down']['current'] = true;
+    } else if (e.keyCode === 90) {
+        Game.keyPressed['counterClockwise']['current'] = true;
     }
 };
 
 Game.keyUpHandler = function(e) {
     if (e.keyCode === 37) {
-        Game.keyPressed['leftArrow']['current'] = false;
+        Game.keyPressed['left']['current'] = false;
     } else if (e.keyCode === 39) {
-        Game.keyPressed['rightArrow']['current'] = false;
+        Game.keyPressed['right']['current'] = false;
     } else if (e.keyCode === 40) {
-        Game.keyPressed['downArrow']['current'] = false;
+        Game.keyPressed['down']['current'] = false;
+    } else if (e.keyCode === 90) {
+        Game.keyPressed['counterClockwise']['current'] = false;
     }
 };
 
