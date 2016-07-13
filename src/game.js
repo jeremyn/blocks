@@ -8,6 +8,8 @@ Game.initialize = function(borderColor, squareDim) {
     Game.borderColor = borderColor;
     Game.squareDim = squareDim;
 
+    Game.finishedRowCount = 0;
+
     document.addEventListener('keydown', Game.keyDownHandler, false);
     document.addEventListener('keyup', Game.keyUpHandler, false);
     Game.keyPressed = {
@@ -159,6 +161,33 @@ Game.moveActiveBlock = function(grid, direction) {
     return funcStatus;
 };
 
+Game.clearMatchedRows = function(grid) {
+    var finishedRowNums = [];
+    for (var rowNum = 0; rowNum < grid.length; rowNum++) {
+        var emptyCols = grid[rowNum].filter(function(col) {
+            return col['state'] === Game.gridStates.EMPTY;
+        });
+        if (emptyCols.length === 0) {
+            finishedRowNums.push(rowNum);
+        }
+    }
+    for (var i = 0; i < finishedRowNums.length; i++) {
+        var finishedRowNum = finishedRowNums[i];
+        for (var colNum = 0; colNum < grid[0].length; colNum++) {
+            grid[finishedRowNum][colNum]['state'] = Game.gridStates.EMPTY;
+        }
+        for (rowNum = finishedRowNum-1; rowNum >= 0; rowNum--) {
+            for (colNum = 0; colNum < grid[0].length; colNum++) {
+                grid[rowNum+1][colNum]['state'] = grid[rowNum][colNum]['state'];
+                grid[rowNum][colNum]['state'] = Game.gridStates.EMPTY;
+            }
+        }
+        Game.finishedRowCount++;
+    }
+
+    console.log('Game.finishedRowCount: ' + Game.finishedRowCount);
+};
+
 Game.update = function(grid, timeFrame) {
     var keepGoing = true;
 
@@ -187,6 +216,9 @@ Game.update = function(grid, timeFrame) {
                     grid[rowNum][colNum]['isActive'] = false;
                 }
             }
+
+            Game.clearMatchedRows(grid);
+
             keepGoing = Game.addNewBlock(grid, Game.allBlocks);
         }
     }
