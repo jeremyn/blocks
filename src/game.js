@@ -45,13 +45,19 @@ Game.initialize = function(borderColor, squareDim) {
 
     Game.gridStates = {
         EMPTY: 'empty',
+        L: 'l',
         SQUARE: 'square',
+        STRAIGHT: 'straight',
+        T: 't',
         Z: 'z'
     };
 
     Game.colors = {};
     Game.colors[Game.gridStates.EMPTY] = 'white';
+    Game.colors[Game.gridStates.L] = 'silver';
     Game.colors[Game.gridStates.SQUARE] = 'red';
+    Game.colors[Game.gridStates.STRAIGHT] = 'fuchsia';
+    Game.colors[Game.gridStates.T] = 'lime';
     Game.colors[Game.gridStates.Z] = 'aqua';
 
     Game.display = document.getElementById('display');
@@ -76,8 +82,19 @@ Game.initialize = function(borderColor, squareDim) {
 
     Game.allBlocks = [
         [
+            [Game.gridStates.L, Game.gridStates.L, Game.gridStates.L],
+            [Game.gridStates.L, Game.gridStates.EMPTY, Game.gridStates.EMPTY]
+        ],
+        [
             [Game.gridStates.SQUARE, Game.gridStates.SQUARE],
             [Game.gridStates.SQUARE, Game.gridStates.SQUARE]
+        ],
+        [
+            [Game.gridStates.STRAIGHT, Game.gridStates.STRAIGHT, Game.gridStates.STRAIGHT, Game.gridStates.STRAIGHT]
+        ],
+        [
+            [Game.gridStates.T, Game.gridStates.T, Game.gridStates.T],
+            [Game.gridStates.EMPTY, Game.gridStates.T, Game.gridStates.EMPTY]
         ],
         [
             [Game.gridStates.Z, Game.gridStates.Z, Game.gridStates.EMPTY],
