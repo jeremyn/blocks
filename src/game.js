@@ -8,6 +8,23 @@ Game.initialize = function(borderColor, squareDim) {
     Game.borderColor = borderColor;
     Game.squareDim = squareDim;
 
+    document.addEventListener('keydown', Game.keyDownHandler, false);
+    document.addEventListener('keyup', Game.keyUpHandler, false);
+    Game.keyPressed = {
+        leftArrow: {
+            'previous': false,
+            'current': false
+        },
+        rightArrow: {
+            'previous': false,
+            'current': false
+        },
+        downArrow: {
+            'previous': false,
+            'current': false
+        }
+    };
+
     // in milliseconds
     Game.downTickDuration = 500;
 
@@ -98,13 +115,17 @@ Game.moveActiveBlock = function(grid, direction) {
         }
     }
 
-    var moveFunc;
-    if (direction === Game.directions.DOWN) {
-        moveFunc = function(coord) {
-            return [coord[0] + 1, coord[1]]
-        };
-    }
-    var newActiveCoords = oldActiveCoords.map(moveFunc);
+    var moveFunctions = {};
+    moveFunctions[Game.directions.LEFT] = function(coord) {
+        return [coord[0], coord[1] - 1];
+    };
+    moveFunctions[Game.directions.RIGHT] = function(coord) {
+        return [coord[0], coord[1] + 1];
+    };
+    moveFunctions[Game.directions.DOWN] = function(coord) {
+        return [coord[0] + 1, coord[1]];
+    };
+    var newActiveCoords = oldActiveCoords.map(moveFunctions[direction]);
 
     var moveIsAllowed = true;
     for (var i = 0; i < newActiveCoords.length; i++) {
@@ -141,6 +162,21 @@ Game.moveActiveBlock = function(grid, direction) {
 Game.update = function(grid, timeFrame) {
     var keepGoing = true;
 
+    if (Game.keyPressed['leftArrow']['current'] &&
+        !Game.keyPressed['leftArrow']['previous']) {
+        Game.moveActiveBlock(grid, Game.directions.LEFT);
+    } else if (Game.keyPressed['rightArrow']['current'] &&
+        !Game.keyPressed['rightArrow']['previous']) {
+        Game.moveActiveBlock(grid, Game.directions.RIGHT);
+    } else if (Game.keyPressed['downArrow']['current'] &&
+        !Game.keyPressed['downArrow']['previous']) {
+        Game.moveActiveBlock(grid, Game.directions.DOWN);
+    }
+
+    Game.keyPressed['leftArrow']['previous'] = Game.keyPressed['leftArrow']['current'];
+    Game.keyPressed['rightArrow']['previous'] = Game.keyPressed['rightArrow']['current'];
+    Game.keyPressed['downArrow']['previous'] = Game.keyPressed['downArrow']['current'];
+
     if (timeFrame > (Game.lastDownTick + Game.downTickDuration)) {
         Game.lastDownTick = timeFrame;
         var moveWorked = Game.moveActiveBlock(grid, Game.directions.DOWN);
@@ -175,6 +211,26 @@ Game.draw = function(ctx, grid, squareDim) {
                 squareDim
             );
         }
+    }
+};
+
+Game.keyDownHandler = function(e) {
+    if (e.keyCode === 37) {
+        Game.keyPressed['leftArrow']['current'] = true;
+    } else if (e.keyCode === 39) {
+        Game.keyPressed['rightArrow']['current'] = true;
+    } else if (e.keyCode === 40) {
+        Game.keyPressed['downArrow']['current'] = true;
+    }
+};
+
+Game.keyUpHandler = function(e) {
+    if (e.keyCode === 37) {
+        Game.keyPressed['leftArrow']['current'] = false;
+    } else if (e.keyCode === 39) {
+        Game.keyPressed['rightArrow']['current'] = false;
+    } else if (e.keyCode === 40) {
+        Game.keyPressed['downArrow']['current'] = false;
     }
 };
 
