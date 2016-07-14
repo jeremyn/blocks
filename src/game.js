@@ -10,6 +10,15 @@ Game.initialize = function(borderColor, squareDim) {
 
     Game.finishedRowCount = 0;
 
+    Game.keyCodes = {
+        LEFT_ARROW: 37,
+        RIGHT_ARROW: 39,
+        DOWN_ARROW: 40,
+        C: 67,
+        X: 88,
+        Z: 90
+    };
+
     document.addEventListener('keydown', Game.keyDownHandler, false);
     document.addEventListener('keyup', Game.keyUpHandler, false);
     Game.keyPressed = {
@@ -345,33 +354,33 @@ Game.draw = function(ctx, grid, squareDim) {
 };
 
 Game.keyDownHandler = function(e) {
-    if (e.keyCode === 37) {  // ArrowLeft
+    if (e.keyCode === Game.keyCodes.LEFT_ARROW) {
         Game.keyPressed['left']['current'] = true;
-    } else if (e.keyCode === 39) {  // ArrowRight
+    } else if (e.keyCode === Game.keyCodes.RIGHT_ARROW) {
         Game.keyPressed['right']['current'] = true;
-    } else if (e.keyCode === 40) {  // ArrowDown
+    } else if (e.keyCode === Game.keyCodes.DOWN_ARROW) {
         Game.keyPressed['down']['current'] = true;
-    } else if (e.keyCode === 67) {  // c
+    } else if (e.keyCode === Game.keyCodes.C) {
         Game.keyPressed['clockwise']['current'] = true;
-    } else if (e.keyCode === 90) {  // z
+    } else if (e.keyCode === Game.keyCodes.Z) {
         Game.keyPressed['counterClockwise']['current'] = true;
-    } else if (e.keyCode === 88) {  // x
+    } else if (e.keyCode === Game.keyCodes.X) {
         Game.keyPressed['reflect']['current'] = true;
     }
 };
 
 Game.keyUpHandler = function(e) {
-    if (e.keyCode === 37) {
+    if (e.keyCode === Game.keyCodes.LEFT_ARROW) {
         Game.keyPressed['left']['current'] = false;
-    } else if (e.keyCode === 39) {
+    } else if (e.keyCode === Game.keyCodes.RIGHT_ARROW) {
         Game.keyPressed['right']['current'] = false;
-    } else if (e.keyCode === 40) {
+    } else if (e.keyCode === Game.keyCodes.DOWN_ARROW) {
         Game.keyPressed['down']['current'] = false;
-    } else if (e.keyCode === 67) {
+    } else if (e.keyCode === Game.keyCodes.C) {
         Game.keyPressed['clockwise']['current'] = false;
-    } else if (e.keyCode === 90) {
+    } else if (e.keyCode === Game.keyCodes.Z) {
         Game.keyPressed['counterClockwise']['current'] = false;
-    } else if (e.keyCode === 88) {
+    } else if (e.keyCode === Game.keyCodes.X) {
         Game.keyPressed['reflect']['current'] = false;
     }
 };
