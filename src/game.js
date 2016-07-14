@@ -11,6 +11,7 @@ Game.initialize = function(borderColor, squareDim) {
     Game.finishedRowCount = 0;
 
     Game.keyCodes = {
+        SPACE: 32,
         LEFT_ARROW: 37,
         RIGHT_ARROW: 39,
         DOWN_ARROW: 40,
@@ -18,6 +19,9 @@ Game.initialize = function(borderColor, squareDim) {
         X: 88,
         Z: 90
     };
+
+    console.log('game starts paused');
+    Game.isPaused = true;
 
     document.addEventListener('keydown', Game.keyDownHandler, false);
     document.addEventListener('keyup', Game.keyUpHandler, false);
@@ -45,6 +49,10 @@ Game.initialize = function(borderColor, squareDim) {
         reflect: {
             'previous': false,
             'current': false
+        },
+        pause: {
+            'previous': false,
+            'current': false
         }
     };
 
@@ -59,7 +67,8 @@ Game.initialize = function(borderColor, squareDim) {
         RIGHT: 'right',
         CLOCKWISE: 'clockwise',
         COUNTERCLOCKWISE: 'counterclockwise',
-        REFLECT: 'reflect'  // reflect around y-axis
+        REFLECT: 'reflect',  // reflect around y-axis
+        PAUSE: 'pause'
     };
 
     Game.gridStates = {
@@ -283,9 +292,7 @@ Game.clearMatchedRows = function(grid) {
     console.log('Game.finishedRowCount: ' + Game.finishedRowCount);
 };
 
-Game.update = function(grid, timeFrame) {
-    var keepGoing = true;
-
+Game.processMovementKeys = function(grid) {
     if (Game.keyPressed['left']['current'] &&
         !Game.keyPressed['left']['previous']) {
         Game.moveActiveBlock(grid, Game.actions.LEFT);
@@ -312,7 +319,10 @@ Game.update = function(grid, timeFrame) {
     Game.keyPressed['clockwise']['previous'] = Game.keyPressed['clockwise']['current'];
     Game.keyPressed['counterClockwise']['previous'] = Game.keyPressed['counterClockwise']['current'];
     Game.keyPressed['reflect']['previous'] = Game.keyPressed['reflect']['current'];
+};
 
+Game.processDownwardTick = function(grid, timeFrame) {
+    var keepGoing = true;
     if (timeFrame > (Game.lastDownTick + Game.downTickDuration)) {
         Game.lastDownTick = timeFrame;
         var moveWorked = Game.moveActiveBlock(grid, Game.actions.DOWN);
@@ -329,6 +339,29 @@ Game.update = function(grid, timeFrame) {
             keepGoing = Game.addNewBlock(grid, Game.allBlocks);
         }
     }
+    return keepGoing;
+};
+
+Game.update = function(grid, timeFrame) {
+    var keepGoing = true;
+    if (Game.keyPressed['pause']['current'] &&
+        !Game.keyPressed['pause']['previous']) {
+        if (Game.isPaused) {
+            console.log('unpausing');
+            Game.isPaused = false;
+        } else {
+            console.log('pausing');
+            Game.isPaused = true;
+        }
+    }
+    Game.keyPressed['pause']['previous'] = Game.keyPressed['pause']['current'];
+
+    if (!Game.isPaused) {
+        Game.processMovementKeys(grid);
+        Game.processDownwardTick(grid, timeFrame);
+        keepGoing = Game.processDownwardTick(grid, timeFrame);
+    }
+
     return keepGoing;
 };
 
@@ -366,6 +399,8 @@ Game.keyDownHandler = function(e) {
         Game.keyPressed['counterClockwise']['current'] = true;
     } else if (e.keyCode === Game.keyCodes.X) {
         Game.keyPressed['reflect']['current'] = true;
+    } else if (e.keyCode === Game.keyCodes.SPACE) {
+        Game.keyPressed['pause']['current'] = true;
     }
 };
 
@@ -382,6 +417,8 @@ Game.keyUpHandler = function(e) {
         Game.keyPressed['counterClockwise']['current'] = false;
     } else if (e.keyCode === Game.keyCodes.X) {
         Game.keyPressed['reflect']['current'] = false;
+    } else if (e.keyCode === Game.keyCodes.SPACE) {
+        Game.keyPressed['pause']['current'] = false;
     }
 };
 
