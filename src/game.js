@@ -40,7 +40,7 @@ Game.initialize = function(borderColor, squareDim) {
 
     Game.lastDownTick = 0;
 
-    Game.directions = {
+    Game.actions = {
         DOWN: 'down',
         LEFT: 'left',
         RIGHT: 'right',
@@ -185,24 +185,6 @@ Game.updateActiveBlockPosition = function(grid, oldActiveCoords, newActiveCoords
     return moveIsAllowed;
 };
 
-Game.moveActiveBlock = function(grid, direction) {
-    var oldActiveCoords = Game.getActiveBlockCoords(grid);
-
-    var moveFunctions = {};
-    moveFunctions[Game.directions.LEFT] = function(coord) {
-        return [coord[0], coord[1] - 1];
-    };
-    moveFunctions[Game.directions.RIGHT] = function(coord) {
-        return [coord[0], coord[1] + 1];
-    };
-    moveFunctions[Game.directions.DOWN] = function(coord) {
-        return [coord[0] + 1, coord[1]];
-    };
-    var newActiveCoords = oldActiveCoords.map(moveFunctions[direction]);
-
-    return Game.updateActiveBlockPosition(grid, oldActiveCoords, newActiveCoords);
-};
-
 Game.getCounterClockwiseRotatedCoords = function(oldCoords) {
     var rows = oldCoords.map(function(c) { return c[0]; });
     rows.sort(function(a,b){ return a-b; });
@@ -223,13 +205,25 @@ Game.getCounterClockwiseRotatedCoords = function(oldCoords) {
     return newCoords;
 };
 
-Game.rotateActiveBlock = function(grid, direction) {
+Game.moveActiveBlock = function(grid, action) {
     var oldActiveCoords = Game.getActiveBlockCoords(grid);
-    var newActiveCoords = [];
+    var newActiveCoords;
     for (var i = 0; i < oldActiveCoords.length; i++) {
-        if (direction === Game.directions.COUNTERCLOCKWISE) {
+        if (action === Game.actions.LEFT) {
+            newActiveCoords = oldActiveCoords.map(function(coord) {
+                return [coord[0], coord[1] - 1];
+            });
+        } else if (action === Game.actions.RIGHT) {
+            newActiveCoords = oldActiveCoords.map(function(coord) {
+                return [coord[0], coord[1] + 1];
+            });
+        } else if (action === Game.actions.DOWN) {
+            newActiveCoords = oldActiveCoords.map(function(coord) {
+                return [coord[0] + 1, coord[1]];
+            });
+        } else if (action === Game.actions.COUNTERCLOCKWISE) {
             newActiveCoords = Game.getCounterClockwiseRotatedCoords(oldActiveCoords);
-        } else if (direction === Game.directions.CLOCKWISE) {
+        } else if (action === Game.actions.CLOCKWISE) {
             newActiveCoords = oldActiveCoords;
             for (i = 0; i < 3; i++) {
                 newActiveCoords = Game.getCounterClockwiseRotatedCoords(newActiveCoords);
@@ -272,19 +266,19 @@ Game.update = function(grid, timeFrame) {
 
     if (Game.keyPressed['left']['current'] &&
         !Game.keyPressed['left']['previous']) {
-        Game.moveActiveBlock(grid, Game.directions.LEFT);
+        Game.moveActiveBlock(grid, Game.actions.LEFT);
     } else if (Game.keyPressed['right']['current'] &&
         !Game.keyPressed['right']['previous']) {
-        Game.moveActiveBlock(grid, Game.directions.RIGHT);
+        Game.moveActiveBlock(grid, Game.actions.RIGHT);
     } else if (Game.keyPressed['down']['current'] &&
         !Game.keyPressed['down']['previous']) {
-        Game.moveActiveBlock(grid, Game.directions.DOWN);
+        Game.moveActiveBlock(grid, Game.actions.DOWN);
     } else if (Game.keyPressed['clockwise']['current'] &&
         !Game.keyPressed['clockwise']['previous']) {
-        Game.rotateActiveBlock(grid, Game.directions.CLOCKWISE);
+        Game.moveActiveBlock(grid, Game.actions.CLOCKWISE);
     } else if (Game.keyPressed['counterClockwise']['current'] &&
         !Game.keyPressed['counterClockwise']['previous']) {
-        Game.rotateActiveBlock(grid, Game.directions.COUNTERCLOCKWISE);
+        Game.moveActiveBlock(grid, Game.actions.COUNTERCLOCKWISE);
     }
 
     Game.keyPressed['left']['previous'] = Game.keyPressed['left']['current'];
@@ -295,7 +289,7 @@ Game.update = function(grid, timeFrame) {
 
     if (timeFrame > (Game.lastDownTick + Game.downTickDuration)) {
         Game.lastDownTick = timeFrame;
-        var moveWorked = Game.moveActiveBlock(grid, Game.directions.DOWN);
+        var moveWorked = Game.moveActiveBlock(grid, Game.actions.DOWN);
 
         if (!moveWorked) {
             for (var rowNum = 0; rowNum < grid.length; rowNum++) {
