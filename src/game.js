@@ -32,6 +32,10 @@ Game.initialize = function(borderColor, squareDim) {
         counterClockwise: {
             'previous': false,
             'current': false
+        },
+        reflect: {
+            'previous': false,
+            'current': false
         }
     };
 
@@ -45,7 +49,8 @@ Game.initialize = function(borderColor, squareDim) {
         LEFT: 'left',
         RIGHT: 'right',
         CLOCKWISE: 'clockwise',
-        COUNTERCLOCKWISE: 'counterclockwise'
+        COUNTERCLOCKWISE: 'counterclockwise',
+        REFLECT: 'reflect'  // reflect around y-axis
     };
 
     Game.gridStates = {
@@ -185,7 +190,7 @@ Game.updateActiveBlockPosition = function(grid, oldActiveCoords, newActiveCoords
     return moveIsAllowed;
 };
 
-Game.getCounterClockwiseRotatedCoords = function(oldCoords) {
+Game.getUpdatedCoords = function(oldCoords, action) {
     var rows = oldCoords.map(function(c) { return c[0]; });
     rows.sort(function(a,b){ return a-b; });
     var cols = oldCoords.map(function(c) { return c[1]; });
@@ -193,12 +198,17 @@ Game.getCounterClockwiseRotatedCoords = function(oldCoords) {
     var newCoords = [];
     for (var i = 0; i < oldCoords.length; i++) {
         var newRow, newCol;
-        if (cols.length >= rows.length) {
-            newRow = rows[0]+((cols[cols.length-1]-cols[0])-(oldCoords[i][1]-cols[0]));
-            newCol = cols[0]+(oldCoords[i][0]-rows[0]);
-        } else {
-            newRow = rows[0]+(oldCoords[i][1]-cols[0]);
-            newCol = cols[0]+((rows[rows.length-1]-rows[0])-(oldCoords[i][0]-rows[0]));
+        if (action === Game.actions.COUNTERCLOCKWISE) {
+            if (cols.length >= rows.length) {
+                newRow = rows[0]+((cols[cols.length-1]-cols[0])-(oldCoords[i][1]-cols[0]));
+                newCol = cols[0]+(oldCoords[i][0]-rows[0]);
+            } else {
+                newRow = rows[0]+(oldCoords[i][1]-cols[0]);
+                newCol = cols[0]+((rows[rows.length-1]-rows[0])-(oldCoords[i][0]-rows[0]));
+            }
+        } else if (action === Game.actions.REFLECT) {
+            newRow = oldCoords[i][0];
+            newCol = cols[cols.length-1] - oldCoords[i][1] + cols[0];
         }
         newCoords.push([newRow, newCol]);
     }
@@ -222,12 +232,14 @@ Game.moveActiveBlock = function(grid, action) {
                 return [coord[0] + 1, coord[1]];
             });
         } else if (action === Game.actions.COUNTERCLOCKWISE) {
-            newActiveCoords = Game.getCounterClockwiseRotatedCoords(oldActiveCoords);
+            newActiveCoords = Game.getUpdatedCoords(oldActiveCoords, action);
         } else if (action === Game.actions.CLOCKWISE) {
             newActiveCoords = oldActiveCoords;
             for (i = 0; i < 3; i++) {
-                newActiveCoords = Game.getCounterClockwiseRotatedCoords(newActiveCoords);
+                newActiveCoords = Game.getUpdatedCoords(newActiveCoords, Game.actions.COUNTERCLOCKWISE);
             }
+        } else if (action === Game.actions.REFLECT) {
+            newActiveCoords = Game.getUpdatedCoords(oldActiveCoords, action);
         }
     }
 
@@ -279,6 +291,9 @@ Game.update = function(grid, timeFrame) {
     } else if (Game.keyPressed['counterClockwise']['current'] &&
         !Game.keyPressed['counterClockwise']['previous']) {
         Game.moveActiveBlock(grid, Game.actions.COUNTERCLOCKWISE);
+    } else if (Game.keyPressed['reflect']['current'] &&
+        !Game.keyPressed['reflect']['previous']) {
+        Game.moveActiveBlock(grid, Game.actions.REFLECT);
     }
 
     Game.keyPressed['left']['previous'] = Game.keyPressed['left']['current'];
@@ -286,6 +301,7 @@ Game.update = function(grid, timeFrame) {
     Game.keyPressed['down']['previous'] = Game.keyPressed['down']['current'];
     Game.keyPressed['clockwise']['previous'] = Game.keyPressed['clockwise']['current'];
     Game.keyPressed['counterClockwise']['previous'] = Game.keyPressed['counterClockwise']['current'];
+    Game.keyPressed['reflect']['previous'] = Game.keyPressed['reflect']['current'];
 
     if (timeFrame > (Game.lastDownTick + Game.downTickDuration)) {
         Game.lastDownTick = timeFrame;
@@ -338,6 +354,8 @@ Game.keyDownHandler = function(e) {
         Game.keyPressed['clockwise']['current'] = true;
     } else if (e.keyCode === 90) {  // z
         Game.keyPressed['counterClockwise']['current'] = true;
+    } else if (e.keyCode === 88) {  // x
+        Game.keyPressed['reflect']['current'] = true;
     }
 };
 
@@ -352,6 +370,8 @@ Game.keyUpHandler = function(e) {
         Game.keyPressed['clockwise']['current'] = false;
     } else if (e.keyCode === 90) {
         Game.keyPressed['counterClockwise']['current'] = false;
+    } else if (e.keyCode === 88) {
+        Game.keyPressed['reflect']['current'] = false;
     }
 };
 
