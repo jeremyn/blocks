@@ -7,6 +7,8 @@ var Game = {};
 Game.initialize = function(borderColor, squareDim) {
     Game.borderColor = borderColor;
     Game.squareDim = squareDim;
+    Game.borderLineWidth = 6;
+    Game.gridLineWidth = 1;
 
     Game.finishedRowCount = 0;
 
@@ -90,8 +92,10 @@ Game.initialize = function(borderColor, squareDim) {
 
     Game.display = document.getElementById('display');
 
+    Game.statusBarHeight = 50;
+
     var gridWidth = Game.display.width / Game.squareDim;
-    var gridHeight = Game.display.height / Game.squareDim;
+    var gridHeight = (Game.display.height - Game.statusBarHeight) / Game.squareDim;
     if ((gridWidth % 2 !== 0) || (gridHeight % 2 !== 0)) {
         throw new Error('bad grid dimensions');
     } else {
@@ -135,7 +139,6 @@ Game.initialize = function(borderColor, squareDim) {
     Game.ctx = Game.display.getContext('2d');
 
     Game.draw(Game.ctx, Game.grid, Game.squareDim);
-
 };
 
 Game.addNewBlock = function(grid, allBlocks) {
@@ -288,8 +291,6 @@ Game.clearMatchedRows = function(grid) {
         }
         Game.finishedRowCount++;
     }
-
-    console.log('Game.finishedRowCount: ' + Game.finishedRowCount);
 };
 
 Game.processMovementKeys = function(grid) {
@@ -365,7 +366,8 @@ Game.update = function(grid, timeFrame) {
     return keepGoing;
 };
 
-Game.draw = function(ctx, grid, squareDim) {
+Game.drawGrid = function(ctx, grid, squareDim) {
+    ctx.lineWidth = Game.gridLineWidth;
     ctx.strokeStyle = Game.borderColor;
     for (var rowNum = 0; rowNum < grid.length; rowNum++) {
         for (var colNum = 0; colNum < grid[0].length; colNum++) {
@@ -384,6 +386,44 @@ Game.draw = function(ctx, grid, squareDim) {
             );
         }
     }
+};
+
+Game.drawStatusBar = function(ctx) {
+    ctx.fillStyle = Game.colors[Game.gridStates.EMPTY];
+    ctx.fillRect(
+        0,
+        Game.display.height - Game.statusBarHeight,
+        Game.display.width,
+        Game.statusBarHeight
+    );
+
+    var scoreText = 'Lines completed: ' + Game.finishedRowCount;
+    var fontHeight = 0.5 * Game.statusBarHeight;
+    ctx.font = fontHeight + 'px serif';
+    ctx.fillStyle = Game.borderColor;
+    ctx.fillText(
+        scoreText,
+        (0.5 * Game.display.width) - (0.5 * ctx.measureText(scoreText).width),
+        Game.display.height - (0.5 * Game.statusBarHeight) + (0.35 * fontHeight)
+    );
+};
+
+Game.drawBorders = function(ctx) {
+    ctx.strokeStyle = Game.borderColor;
+    ctx.lineWidth = Game.borderLineWidth;
+    ctx.strokeRect(0, 0, Game.display.width, Game.display.height);
+    ctx.lineWidth = 0.5 * Game.borderLineWidth;
+    ctx.beginPath();
+    ctx.moveTo(0, Game.display.height - Game.statusBarHeight);
+    ctx.lineTo(Game.display.width, Game.display.height - Game.statusBarHeight);
+    ctx.closePath();
+    ctx.stroke();
+};
+
+Game.draw = function(ctx, grid, squareDim) {
+    Game.drawGrid(ctx, grid, squareDim);
+    Game.drawStatusBar(ctx);
+    Game.drawBorders(ctx);
 };
 
 Game.keyDownHandler = function(e) {
