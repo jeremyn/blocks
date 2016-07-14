@@ -191,58 +191,59 @@ Game.updateActiveBlockPosition = function(grid, oldActiveCoords, newActiveCoords
 };
 
 Game.getUpdatedCoords = function(oldCoords, action) {
-    var rows = oldCoords.map(function(c) { return c[0]; });
-    rows.sort(function(a,b){ return a-b; });
-    var cols = oldCoords.map(function(c) { return c[1]; });
-    cols.sort(function(a,b){ return a-b; });
-    var newCoords = [];
-    for (var i = 0; i < oldCoords.length; i++) {
-        var newRow, newCol;
-        if (action === Game.actions.COUNTERCLOCKWISE) {
-            if (cols.length >= rows.length) {
-                newRow = rows[0]+((cols[cols.length-1]-cols[0])-(oldCoords[i][1]-cols[0]));
-                newCol = cols[0]+(oldCoords[i][0]-rows[0]);
-            } else {
-                newRow = rows[0]+(oldCoords[i][1]-cols[0]);
-                newCol = cols[0]+((rows[rows.length-1]-rows[0])-(oldCoords[i][0]-rows[0]));
-            }
-        } else if (action === Game.actions.REFLECT) {
-            newRow = oldCoords[i][0];
-            newCol = cols[cols.length-1] - oldCoords[i][1] + cols[0];
+    var newCoords;
+    if (action === Game.actions.CLOCKWISE) {
+        newCoords = oldCoords;
+        for (var j = 0; j < 3; j++) {
+            newCoords = Game.getUpdatedCoords(newCoords, Game.actions.COUNTERCLOCKWISE);
         }
-        newCoords.push([newRow, newCol]);
+    } else {
+        var rows = oldCoords.map(function(c) { return c[0]; });
+        rows.sort(function(a,b){ return a-b; });
+        var minRow = rows[0];
+        var maxRow = rows[rows.length-1];
+
+        var cols = oldCoords.map(function(c) { return c[1]; });
+        cols.sort(function(a,b){ return a-b; });
+        var minCol = cols[0];
+        var maxCol = cols[cols.length-1];
+
+        newCoords = [];
+        for (var i = 0; i < oldCoords.length; i++) {
+            var oldRow = oldCoords[i][0];
+            var oldCol = oldCoords[i][1];
+            var newRow;
+            var newCol;
+            if (action === Game.actions.LEFT) {
+                newRow = oldRow;
+                newCol = oldCol-1;
+            } else if (action === Game.actions.RIGHT) {
+                newRow = oldRow;
+                newCol = oldCol+1;
+            } else if (action === Game.actions.DOWN) {
+                newRow = oldRow+1;
+                newCol = oldCol;
+            } else if (action === Game.actions.COUNTERCLOCKWISE) {
+                if (cols.length >= rows.length) {
+                    newRow = minRow+((maxCol-minCol)-(oldCol-minCol));
+                    newCol = minCol+(oldRow-minRow);
+                } else {
+                    newRow = minRow+(oldCol-minCol);
+                    newCol = minCol+((maxRow-minRow)-(oldRow-minRow));
+                }
+            } else if (action === Game.actions.REFLECT) {
+                newRow = oldRow;
+                newCol = maxCol - oldCol + minCol;
+            }
+            newCoords.push([newRow, newCol]);
+        }
     }
     return newCoords;
 };
 
 Game.moveActiveBlock = function(grid, action) {
     var oldActiveCoords = Game.getActiveBlockCoords(grid);
-    var newActiveCoords;
-    for (var i = 0; i < oldActiveCoords.length; i++) {
-        if (action === Game.actions.LEFT) {
-            newActiveCoords = oldActiveCoords.map(function(coord) {
-                return [coord[0], coord[1] - 1];
-            });
-        } else if (action === Game.actions.RIGHT) {
-            newActiveCoords = oldActiveCoords.map(function(coord) {
-                return [coord[0], coord[1] + 1];
-            });
-        } else if (action === Game.actions.DOWN) {
-            newActiveCoords = oldActiveCoords.map(function(coord) {
-                return [coord[0] + 1, coord[1]];
-            });
-        } else if (action === Game.actions.COUNTERCLOCKWISE) {
-            newActiveCoords = Game.getUpdatedCoords(oldActiveCoords, action);
-        } else if (action === Game.actions.CLOCKWISE) {
-            newActiveCoords = oldActiveCoords;
-            for (i = 0; i < 3; i++) {
-                newActiveCoords = Game.getUpdatedCoords(newActiveCoords, Game.actions.COUNTERCLOCKWISE);
-            }
-        } else if (action === Game.actions.REFLECT) {
-            newActiveCoords = Game.getUpdatedCoords(oldActiveCoords, action);
-        }
-    }
-
+    var newActiveCoords = Game.getUpdatedCoords(oldActiveCoords, action);
     return Game.updateActiveBlockPosition(grid, oldActiveCoords, newActiveCoords);
 };
 
