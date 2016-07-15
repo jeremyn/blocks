@@ -10,8 +10,6 @@ Game.initialize = function(borderColor, squareDim, canvasId) {
     Game.borderLineWidth = 6;
     Game.gridLineWidth = 1;
 
-    Game.finishedRowCount = 0;
-
     Game.keyCodes = {
         SPACE: 32,
         LEFT_ARROW: 37,
@@ -40,36 +38,6 @@ Game.initialize = function(borderColor, squareDim, canvasId) {
 
     document.addEventListener('keydown', Game.keyDownHandler, false);
     document.addEventListener('keyup', Game.keyUpHandler, false);
-    Game.keyPressed = {
-        left: {
-            'previous': false,
-            'current': false
-        },
-        right: {
-            'previous': false,
-            'current': false
-        },
-        down: {
-            'previous': false,
-            'current': false
-        },
-        clockwise: {
-            'previous': false,
-            'current': false
-        },
-        counterClockwise: {
-            'previous': false,
-            'current': false
-        },
-        reflect: {
-            'previous': false,
-            'current': false
-        },
-        pause: {
-            'previous': false,
-            'current': false
-        }
-    };
 
     // in milliseconds
     Game.downTickDuration = 500;
@@ -107,8 +75,6 @@ Game.initialize = function(borderColor, squareDim, canvasId) {
 
     Game.statusBarHeight = 50;
 
-    Game.grid = Game.getEmptyGrid();
-
     Game.allBlocks = [
         [
             [Game.gridStates.L, Game.gridStates.L, Game.gridStates.L],
@@ -131,7 +97,7 @@ Game.initialize = function(borderColor, squareDim, canvasId) {
         ]
     ];
 
-    Game.addNewBlock(Game.grid, Game.allBlocks);
+    Game.prepareNewGame();
 
     Game.ctx = Game.display.getContext('2d');
 
@@ -157,6 +123,42 @@ Game.getEmptyGrid = function() {
         }
     }
     return grid;
+};
+
+Game.prepareNewGame = function() {
+    Game.keyPressed = {
+        left: {
+            'previous': false,
+            'current': false
+        },
+        right: {
+            'previous': false,
+            'current': false
+        },
+        down: {
+            'previous': false,
+            'current': false
+        },
+        clockwise: {
+            'previous': false,
+            'current': false
+        },
+        counterClockwise: {
+            'previous': false,
+            'current': false
+        },
+        reflect: {
+            'previous': false,
+            'current': false
+        },
+        pause: {
+            'previous': false,
+            'current': false
+        }
+    };
+    Game.finishedRowCount = 0;
+    Game.grid = Game.getEmptyGrid();
+    Game.addNewBlock(Game.grid, Game.allBlocks);
 };
 
 Game.addNewBlock = function(grid, allBlocks) {
