@@ -22,6 +22,16 @@ Game.initialize = function(borderColor, squareDim, canvasId) {
         Z: 90
     };
 
+    Game.controlsHelp = [
+        "Pause/unpause: \<space\>",
+        "Move block: left/right/down arrow",
+        "Rotate counterclockwise: 'z'",
+        "Reflect around y-axis: 'x'",
+        "Rotate clockwise: 'c'"
+    ];
+
+    Game.fontSuffix = 'px serif';
+
     Game.isPaused = true;
     Game.isNewlyPaused = true;
 
@@ -366,9 +376,40 @@ Game.update = function(grid, timeFrame) {
     return keepGoing;
 };
 
-Game.drawPauseScreen = function(ctx) {
+Game.drawPauseScreen = function(ctx, pauseText) {
     ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
     ctx.fillRect(0, 0, Game.display.width, Game.display.height - Game.statusBarHeight);
+
+    var fontHeight = 0.5 * Game.statusBarHeight;
+    var pauseBoxHeight = 1.05 * fontHeight * (pauseText.length + 0.5);
+    var pauseBoxStartRow = 0.5 * (Game.display.height - Game.statusBarHeight - pauseBoxHeight);
+
+    ctx.fillStyle = Game.colors[Game.gridStates.EMPTY];
+    ctx.strokeStyle = Game.borderColor;
+    ctx.fillRect(
+        0.5 * Game.squareDim,
+        pauseBoxStartRow,
+        Game.display.width - Game.squareDim,
+        pauseBoxHeight
+    );
+    ctx.strokeRect(
+        0.5 * Game.squareDim,
+        pauseBoxStartRow,
+        Game.display.width - Game.squareDim,
+        pauseBoxHeight
+    );
+
+    ctx.fillStyle = Game.borderColor;
+    ctx.font = fontHeight + Game.fontSuffix;
+    for (var i = 0; i < pauseText.length; i++) {
+        var thisText = pauseText[i];
+        ctx.fillText(
+            thisText,
+            Game.squareDim,
+            pauseBoxStartRow + 1.055 * fontHeight * (i+1),
+            Game.display.width - 2 * Game.squareDim
+        );
+    }
 };
 
 Game.drawGrid = function(ctx, grid, squareDim) {
@@ -404,7 +445,7 @@ Game.drawStatusBar = function(ctx) {
 
     var scoreText = 'Lines completed: ' + Game.finishedRowCount;
     var fontHeight = 0.5 * Game.statusBarHeight;
-    ctx.font = fontHeight + 'px serif';
+    ctx.font = fontHeight + Game.fontSuffix;
     ctx.fillStyle = Game.borderColor;
     ctx.fillText(
         scoreText,
@@ -471,7 +512,7 @@ Game.main = function(timeFrame) {
     var keepGoing = Game.update(Game.grid, timeFrame);
     if (Game.isPaused) {
         if (Game.isNewlyPaused) {
-            Game.drawPauseScreen(Game.ctx);
+            Game.drawPauseScreen(Game.ctx, Game.controlsHelp);
             Game.isNewlyPaused = false;
         }
     } else {
