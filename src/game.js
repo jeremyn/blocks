@@ -4,7 +4,7 @@
 'use strict';
 var Game = {};
 
-Game.initialize = function(borderColor, squareDim) {
+Game.initialize = function(borderColor, squareDim, canvasId) {
     Game.borderColor = borderColor;
     Game.squareDim = squareDim;
     Game.borderLineWidth = 6;
@@ -90,7 +90,7 @@ Game.initialize = function(borderColor, squareDim) {
     Game.colors[Game.gridStates.T] = 'lime';
     Game.colors[Game.gridStates.Z] = 'aqua';
 
-    Game.display = document.getElementById('display');
+    Game.display = document.getElementById(canvasId);
 
     Game.statusBarHeight = 50;
 
