@@ -379,7 +379,6 @@ Game.update = function(grid, timeFrame) {
 
     if (!Game.isPaused) {
         Game.processMovementKeys(grid);
-        Game.processDownwardTick(grid, timeFrame);
         keepGoing = Game.processDownwardTick(grid, timeFrame);
     }
 
