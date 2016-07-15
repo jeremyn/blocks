@@ -107,23 +107,7 @@ Game.initialize = function(borderColor, squareDim, canvasId) {
 
     Game.statusBarHeight = 50;
 
-    var gridWidth = Game.display.width / Game.squareDim;
-    var gridHeight = (Game.display.height - Game.statusBarHeight) / Game.squareDim;
-    if ((gridWidth % 2 !== 0) || (gridHeight % 2 !== 0)) {
-        throw new Error('bad grid dimensions');
-    } else {
-        Game.grid = [];
-        for (var rowNum = 0; rowNum < gridHeight; rowNum++) {
-            var row = [];
-            for (var colNum = 0; colNum < gridWidth; colNum++) {
-                row.push({
-                    state: Game.gridStates.EMPTY,
-                    isActive: false
-                });
-            }
-            Game.grid.push(row);
-        }
-    }
+    Game.grid = Game.getEmptyGrid();
 
     Game.allBlocks = [
         [
@@ -152,6 +136,27 @@ Game.initialize = function(borderColor, squareDim, canvasId) {
     Game.ctx = Game.display.getContext('2d');
 
     Game.draw(Game.ctx, Game.grid, Game.squareDim);
+};
+
+Game.getEmptyGrid = function() {
+    var grid = [];
+    var gridWidth = Game.display.width / Game.squareDim;
+    var gridHeight = (Game.display.height - Game.statusBarHeight) / Game.squareDim;
+    if ((gridWidth % 2 !== 0) || (gridHeight % 2 !== 0)) {
+        throw new Error('bad grid dimensions');
+    } else {
+        for (var rowNum = 0; rowNum < gridHeight; rowNum++) {
+            var row = [];
+            for (var colNum = 0; colNum < gridWidth; colNum++) {
+                row.push({
+                    state: Game.gridStates.EMPTY,
+                    isActive: false
+                });
+            }
+            grid.push(row);
+        }
+    }
+    return grid;
 };
 
 Game.addNewBlock = function(grid, allBlocks) {
