@@ -23,6 +23,7 @@ Game.initialize = function(borderColor, squareDim, canvasId) {
     };
 
     Game.controlsHelp = [
+        "-Controls-",
         "Pause/unpause: \<space\>",
         "Move block: left/right/down arrow",
         "Rotate counterclockwise: 'z'",
@@ -34,6 +35,8 @@ Game.initialize = function(borderColor, squareDim, canvasId) {
 
     Game.isPaused = true;
     Game.isNewlyPaused = true;
+
+    Game.isFirstRun = true;
 
     document.addEventListener('keydown', Game.keyDownHandler, false);
     document.addEventListener('keyup', Game.keyUpHandler, false);
@@ -512,7 +515,17 @@ Game.main = function(timeFrame) {
     var keepGoing = Game.update(Game.grid, timeFrame);
     if (Game.isPaused) {
         if (Game.isNewlyPaused) {
-            Game.drawPauseScreen(Game.ctx, Game.controlsHelp);
+            var headerText = [];
+            if (Game.isFirstRun) {
+                headerText.push("Welcome to Blocks!");
+                headerText.push("Press \<space\> to unpause and begin.");
+                headerText.push("");
+                Game.isFirstRun = false;
+            } else {
+                headerText.push("Paused!");
+                headerText.push("");
+            }
+            Game.drawPauseScreen(Game.ctx, headerText.concat(Game.controlsHelp));
             Game.isNewlyPaused = false;
         }
     } else {
