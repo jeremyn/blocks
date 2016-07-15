@@ -368,7 +368,7 @@ Game.update = function(grid, timeFrame) {
 
 Game.drawPauseScreen = function(ctx) {
     ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
-    ctx.fillRect(0, 0, Game.display.width, Game.display.height);
+    ctx.fillRect(0, 0, Game.display.width, Game.display.height - Game.statusBarHeight);
 };
 
 Game.drawGrid = function(ctx, grid, squareDim) {
