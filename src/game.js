@@ -246,6 +246,13 @@ Game.getUpdatedCoords = function(oldCoords, action) {
             } else if (action === Game.actions.COUNTERCLOCKWISE) {
                 newRow = minRow+((maxCol-minCol)-(oldCol-minCol));
                 newCol = minCol+(oldRow-minRow);
+
+                // adjust behavior for straight-block
+                if (new Set(rows).size === 1) {
+                    newCol++;
+                } else if (new Set(cols).size === 1) {
+                    newCol--;
+                }
             } else if (action === Game.actions.REFLECT) {
                 newRow = oldRow;
                 newCol = maxCol - oldCol + minCol;
