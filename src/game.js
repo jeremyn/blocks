@@ -41,8 +41,6 @@ Game.initialize = function(borderColor, squareDim, canvasId) {
     // in milliseconds
     Game.downTickDuration = 500;
 
-    Game.lastDownTick = 0;
-
     Game.actions = {
         DOWN: 'down',
         LEFT: 'left',
@@ -104,6 +102,8 @@ Game.initialize = function(borderColor, squareDim, canvasId) {
 
     Game.draw(Game.ctx, Game.grid, Game.squareDim, Game.getPauseScreenText());
     Game.shouldRedraw = false;
+
+    Game.shouldResetLastDownTick = true;
 };
 
 Game.getEmptyGrid = function() {
@@ -366,13 +366,17 @@ Game.processDownwardTick = function(grid, timeFrame) {
     return keepGoing;
 };
 
-Game.processPauseKey = function() {
+Game.processPauseKey = function(timeFrame) {
     if (Game.keyPressed['pause']['current'] &&
         !Game.keyPressed['pause']['previous']) {
         if (Game.isPaused) {
             Game.isPaused = false;
             Game.isFirstRun = false;
             Game.shouldRedraw = true;
+            if (Game.shouldResetLastDownTick) {
+                Game.lastDownTick = timeFrame;
+                Game.shouldResetLastDownTick = false;
+            }
         } else {
             Game.isPaused = true;
         }
@@ -382,7 +386,7 @@ Game.processPauseKey = function() {
 
 Game.update = function(grid, timeFrame) {
     var gameOver = Game.gameOver;
-    Game.processPauseKey();
+    Game.processPauseKey(timeFrame);
     if (!Game.isPaused) {
         if (gameOver) {
             Game.prepareNewGame();
@@ -560,6 +564,7 @@ Game.main = function(timeFrame) {
     Game.gameOver = Game.update(Game.grid, timeFrame);
     if (Game.gameOver) {
         Game.isPaused = true;
+        Game.shouldResetLastDownTick = true;
     }
     if (Game.shouldRedraw) {
         Game.draw(Game.ctx, Game.grid, Game.squareDim, Game.getPauseScreenText());
