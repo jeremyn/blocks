@@ -22,8 +22,8 @@ Game.initialize = function(borderColor, squareDim) {
         Z: 90
     };
 
-    console.log('game starts paused');
     Game.isPaused = true;
+    Game.isNewlyPaused = true;
 
     document.addEventListener('keydown', Game.keyDownHandler, false);
     document.addEventListener('keyup', Game.keyUpHandler, false);
@@ -348,11 +348,10 @@ Game.update = function(grid, timeFrame) {
     if (Game.keyPressed['pause']['current'] &&
         !Game.keyPressed['pause']['previous']) {
         if (Game.isPaused) {
-            console.log('unpausing');
             Game.isPaused = false;
         } else {
-            console.log('pausing');
             Game.isPaused = true;
+            Game.isNewlyPaused = true;
         }
     }
     Game.keyPressed['pause']['previous'] = Game.keyPressed['pause']['current'];
@@ -364,6 +363,11 @@ Game.update = function(grid, timeFrame) {
     }
 
     return keepGoing;
+};
+
+Game.drawPauseScreen = function(ctx) {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
+    ctx.fillRect(0, 0, Game.display.width, Game.display.height);
 };
 
 Game.drawGrid = function(ctx, grid, squareDim) {
@@ -464,7 +468,14 @@ Game.keyUpHandler = function(e) {
 
 Game.main = function(timeFrame) {
     var keepGoing = Game.update(Game.grid, timeFrame);
-    Game.draw(Game.ctx, Game.grid, Game.squareDim);
+    if (Game.isPaused) {
+        if (Game.isNewlyPaused) {
+            Game.drawPauseScreen(Game.ctx);
+            Game.isNewlyPaused = false;
+        }
+    } else {
+        Game.draw(Game.ctx, Game.grid, Game.squareDim);
+    }
     if (keepGoing) {
         window.requestAnimationFrame(Game.main);
     } else {
