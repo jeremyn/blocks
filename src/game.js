@@ -20,7 +20,7 @@ Game.initialize = function(borderColor, squareDim, canvasId) {
         Z: 90
     };
 
-    Game.controlsHelp = [
+    Game.controlsText = [
         "-Controls-",
         "Pause/unpause: \<space\>",
         "Move block: left/right/down arrow",
@@ -32,7 +32,6 @@ Game.initialize = function(borderColor, squareDim, canvasId) {
     Game.fontSuffix = 'px serif';
 
     Game.isPaused = true;
-    Game.isNewlyPaused = true;
 
     Game.isFirstRun = true;
 
@@ -97,11 +96,13 @@ Game.initialize = function(borderColor, squareDim, canvasId) {
         ]
     ];
 
+    Game.gameOver = false;
+
     Game.prepareNewGame();
 
     Game.ctx = Game.display.getContext('2d');
 
-    Game.draw(Game.ctx, Game.grid, Game.squareDim);
+    Game.draw(Game.ctx, Game.grid, Game.squareDim, Game.getPauseScreenText());
 };
 
 Game.getEmptyGrid = function() {
@@ -364,33 +365,42 @@ Game.processDownwardTick = function(grid, timeFrame) {
     return keepGoing;
 };
 
-Game.update = function(grid, timeFrame) {
-    var keepGoing = true;
+Game.processPauseKey = function() {
     if (Game.keyPressed['pause']['current'] &&
         !Game.keyPressed['pause']['previous']) {
         if (Game.isPaused) {
             Game.isPaused = false;
+            Game.isFirstRun = false;
         } else {
             Game.isPaused = true;
-            Game.isNewlyPaused = true;
         }
     }
     Game.keyPressed['pause']['previous'] = Game.keyPressed['pause']['current'];
-
-    if (!Game.isPaused) {
-        Game.processMovementKeys(grid);
-        keepGoing = Game.processDownwardTick(grid, timeFrame);
-    }
-
-    return keepGoing;
 };
 
-Game.drawPauseScreen = function(ctx, pauseText) {
+Game.update = function(grid, timeFrame) {
+    var gameOver = Game.gameOver;
+    Game.processPauseKey();
+    if (!Game.isPaused) {
+        if (gameOver) {
+            Game.prepareNewGame();
+            gameOver = false;
+        } else {
+            Game.processMovementKeys(grid);
+            gameOver = !Game.processDownwardTick(grid, timeFrame);
+        }
+    }
+    return gameOver;
+};
+
+Game.drawPauseScreen = function(ctx, pauseScreenText) {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.0)";
+    ctx.fillRect(0, 0, Game.display.width, Game.display.height - Game.statusBarHeight);
     ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
     ctx.fillRect(0, 0, Game.display.width, Game.display.height - Game.statusBarHeight);
 
     var fontHeight = 0.5 * Game.statusBarHeight;
-    var pauseBoxHeight = 1.05 * fontHeight * (pauseText.length + 0.5);
+    var pauseBoxHeight = 1.05 * fontHeight * (pauseScreenText.length + 0.5);
     var pauseBoxStartRow = 0.5 * (Game.display.height - Game.statusBarHeight - pauseBoxHeight);
 
     ctx.fillStyle = Game.colors[Game.gridStates.EMPTY];
@@ -410,8 +420,8 @@ Game.drawPauseScreen = function(ctx, pauseText) {
 
     ctx.fillStyle = Game.borderColor;
     ctx.font = fontHeight + Game.fontSuffix;
-    for (var i = 0; i < pauseText.length; i++) {
-        var thisText = pauseText[i];
+    for (var i = 0; i < pauseScreenText.length; i++) {
+        var thisText = pauseScreenText[i];
         ctx.fillText(
             thisText,
             Game.squareDim,
@@ -475,10 +485,13 @@ Game.drawBorders = function(ctx) {
     ctx.stroke();
 };
 
-Game.draw = function(ctx, grid, squareDim) {
+Game.draw = function(ctx, grid, squareDim, pauseScreenText) {
     Game.drawGrid(ctx, grid, squareDim);
     Game.drawStatusBar(ctx);
     Game.drawBorders(ctx);
+    if (Game.isPaused) {
+        Game.drawPauseScreen(ctx, pauseScreenText);
+    }
 };
 
 Game.keyDownHandler = function(e) {
@@ -517,29 +530,34 @@ Game.keyUpHandler = function(e) {
     }
 };
 
+Game.getPauseScreenText = function() {
+    var pauseHeaderText;
+    if (Game.isFirstRun) {
+        pauseHeaderText = [
+            "Welcome to Blocks!",
+            "Press \<space\> to unpause and begin.",
+            ""
+        ];
+    } else if (Game.gameOver) {
+        pauseHeaderText = [
+            "Game over!",
+            "Press \<space\> to play again.",
+            ""
+        ];
+    } else {
+        pauseHeaderText = [
+            "Paused!",
+            ""
+        ];
+    }
+    return pauseHeaderText.concat(Game.controlsText);
+};
+
 Game.main = function(timeFrame) {
-    var keepGoing = Game.update(Game.grid, timeFrame);
-    if (Game.isPaused) {
-        if (Game.isNewlyPaused) {
-            var headerText = [];
-            if (Game.isFirstRun) {
-                headerText.push("Welcome to Blocks!");
-                headerText.push("Press \<space\> to unpause and begin.");
-                headerText.push("");
-                Game.isFirstRun = false;
-            } else {
-                headerText.push("Paused!");
-                headerText.push("");
-            }
-            Game.drawPauseScreen(Game.ctx, headerText.concat(Game.controlsHelp));
-            Game.isNewlyPaused = false;
-        }
-    } else {
-        Game.draw(Game.ctx, Game.grid, Game.squareDim);
+    Game.gameOver = Game.update(Game.grid, timeFrame);
+    if (Game.gameOver) {
+        Game.isPaused = true;
     }
-    if (keepGoing) {
-        window.requestAnimationFrame(Game.main);
-    } else {
-        console.log('game over!');
-    }
+    Game.draw(Game.ctx, Game.grid, Game.squareDim, Game.getPauseScreenText());
+    window.requestAnimationFrame(Game.main);
 };
