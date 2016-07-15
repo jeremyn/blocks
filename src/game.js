@@ -103,6 +103,7 @@ Game.initialize = function(borderColor, squareDim, canvasId) {
     Game.ctx = Game.display.getContext('2d');
 
     Game.draw(Game.ctx, Game.grid, Game.squareDim, Game.getPauseScreenText());
+    Game.shouldRedraw = false;
 };
 
 Game.getEmptyGrid = function() {
@@ -371,6 +372,7 @@ Game.processPauseKey = function() {
         if (Game.isPaused) {
             Game.isPaused = false;
             Game.isFirstRun = false;
+            Game.shouldRedraw = true;
         } else {
             Game.isPaused = true;
         }
@@ -491,6 +493,7 @@ Game.draw = function(ctx, grid, squareDim, pauseScreenText) {
     Game.drawBorders(ctx);
     if (Game.isPaused) {
         Game.drawPauseScreen(ctx, pauseScreenText);
+        Game.shouldRedraw = false;
     }
 };
 
@@ -558,6 +561,8 @@ Game.main = function(timeFrame) {
     if (Game.gameOver) {
         Game.isPaused = true;
     }
-    Game.draw(Game.ctx, Game.grid, Game.squareDim, Game.getPauseScreenText());
+    if (Game.shouldRedraw) {
+        Game.draw(Game.ctx, Game.grid, Game.squareDim, Game.getPauseScreenText());
+    }
     window.requestAnimationFrame(Game.main);
 };
