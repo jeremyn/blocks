@@ -222,7 +222,6 @@ Game.getUpdatedCoords = function(oldCoords, action) {
         var rows = oldCoords.map(function(c) { return c[0]; });
         rows.sort(function(a,b){ return a-b; });
         var minRow = rows[0];
-        var maxRow = rows[rows.length-1];
 
         var cols = oldCoords.map(function(c) { return c[1]; });
         cols.sort(function(a,b){ return a-b; });
@@ -245,13 +244,8 @@ Game.getUpdatedCoords = function(oldCoords, action) {
                 newRow = oldRow+1;
                 newCol = oldCol;
             } else if (action === Game.actions.COUNTERCLOCKWISE) {
-                if (cols.length >= rows.length) {
-                    newRow = minRow+((maxCol-minCol)-(oldCol-minCol));
-                    newCol = minCol+(oldRow-minRow);
-                } else {
-                    newRow = minRow+(oldCol-minCol);
-                    newCol = minCol+((maxRow-minRow)-(oldRow-minRow));
-                }
+                newRow = minRow+((maxCol-minCol)-(oldCol-minCol));
+                newCol = minCol+(oldRow-minRow);
             } else if (action === Game.actions.REFLECT) {
                 newRow = oldRow;
                 newCol = maxCol - oldCol + minCol;
