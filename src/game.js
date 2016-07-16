@@ -264,7 +264,7 @@ Game.processActionKeys = function(inputGrid) {
     return outputGrid;
 };
 
-Game.processDownwardTick = function(inputGrid, timeFrame) {
+Game.processDownTick = function(inputGrid, timeFrame) {
     var outputGrid = Game.getGridCopy(inputGrid);
     var keepGoing = true;
     if (timeFrame > (Game.lastDownTick + Game.c.DOWN_TICK_DURATION)) {
@@ -325,9 +325,9 @@ Game.update = function(grid, timeFrame) {
             isGameOver = false;
         } else {
             grid = Game.processActionKeys(grid);
-            var processDownwardTickResults = Game.processDownwardTick(grid, timeFrame);
-            isGameOver = processDownwardTickResults.isGameOver;
-            Game.grid = processDownwardTickResults.newGrid;
+            var processDownTickResults = Game.processDownTick(grid, timeFrame);
+            isGameOver = processDownTickResults.isGameOver;
+            Game.grid = processDownTickResults.newGrid;
         }
     }
     return isGameOver;
