@@ -51,22 +51,14 @@ Game.initialize = function(borderColor, squareDim, canvasId) {
         PAUSE: 'pause'
     };
 
-    Game.gridStates = {
-        EMPTY: 'empty',
-        L: 'l',
-        SQUARE: 'square',
-        STRAIGHT: 'straight',
-        T: 't',
-        Z: 'z'
+    Game.colors = {
+        EMPTY: 'white',
+        L: 'silver',
+        SQUARE: 'red',
+        STRAIGHT: 'fuchsia',
+        T: 'lime',
+        Z: 'aqua'
     };
-
-    Game.colors = {};
-    Game.colors[Game.gridStates.EMPTY] = 'white';
-    Game.colors[Game.gridStates.L] = 'silver';
-    Game.colors[Game.gridStates.SQUARE] = 'red';
-    Game.colors[Game.gridStates.STRAIGHT] = 'fuchsia';
-    Game.colors[Game.gridStates.T] = 'lime';
-    Game.colors[Game.gridStates.Z] = 'aqua';
 
     Game.display = document.getElementById(canvasId);
 
@@ -74,23 +66,23 @@ Game.initialize = function(borderColor, squareDim, canvasId) {
 
     Game.allBlocks = [
         [
-            [Game.gridStates.L, Game.gridStates.L, Game.gridStates.L],
-            [Game.gridStates.L, Game.gridStates.EMPTY, Game.gridStates.EMPTY]
+            [Game.colors.L, Game.colors.L, Game.colors.L],
+            [Game.colors.L, Game.colors.EMPTY, Game.colors.EMPTY]
         ],
         [
-            [Game.gridStates.SQUARE, Game.gridStates.SQUARE],
-            [Game.gridStates.SQUARE, Game.gridStates.SQUARE]
+            [Game.colors.SQUARE, Game.colors.SQUARE],
+            [Game.colors.SQUARE, Game.colors.SQUARE]
         ],
         [
-            [Game.gridStates.STRAIGHT, Game.gridStates.STRAIGHT, Game.gridStates.STRAIGHT, Game.gridStates.STRAIGHT]
+            [Game.colors.STRAIGHT, Game.colors.STRAIGHT, Game.colors.STRAIGHT, Game.colors.STRAIGHT]
         ],
         [
-            [Game.gridStates.T, Game.gridStates.T, Game.gridStates.T],
-            [Game.gridStates.EMPTY, Game.gridStates.T, Game.gridStates.EMPTY]
+            [Game.colors.T, Game.colors.T, Game.colors.T],
+            [Game.colors.EMPTY, Game.colors.T, Game.colors.EMPTY]
         ],
         [
-            [Game.gridStates.Z, Game.gridStates.Z, Game.gridStates.EMPTY],
-            [Game.gridStates.EMPTY, Game.gridStates.Z, Game.gridStates.Z]
+            [Game.colors.Z, Game.colors.Z, Game.colors.EMPTY],
+            [Game.colors.EMPTY, Game.colors.Z, Game.colors.Z]
         ]
     ];
 
@@ -117,7 +109,7 @@ Game.getEmptyGrid = function() {
             var row = [];
             for (var colNum = 0; colNum < gridWidth; colNum++) {
                 row.push({
-                    state: Game.gridStates.EMPTY,
+                    state: Game.colors.EMPTY,
                     isActive: false
                 });
             }
@@ -172,8 +164,8 @@ Game.addNewBlock = function(grid, allBlocks) {
         for (var colNum = 0; colNum < newBlock[0].length; colNum++) {
             var gridCell = grid[rowNum][startColNum + colNum];
             var blockCellState = newBlock[rowNum][colNum];
-            if (blockCellState !== Game.gridStates.EMPTY) {
-                if (gridCell['state'] === Game.gridStates.EMPTY) {
+            if (blockCellState !== Game.colors.EMPTY) {
+                if (gridCell['state'] === Game.colors.EMPTY) {
                     gridCell['state'] = blockCellState;
                     gridCell['isActive'] = true;
                 } else {
@@ -211,7 +203,7 @@ Game.updateActiveBlockPosition = function(grid, oldActiveCoords, newActiveCoords
             (0 <= newCoord[1]) && (newCoord[1] < grid[0].length) &&
             (
                 (grid[newCoord[0]][newCoord[1]]['isActive'] === true) ||
-                (grid[newCoord[0]][newCoord[1]]['state'] === Game.gridStates.EMPTY)
+                (grid[newCoord[0]][newCoord[1]]['state'] === Game.colors.EMPTY)
             )
         );
         if (!moveIsAllowed) {
@@ -222,7 +214,7 @@ Game.updateActiveBlockPosition = function(grid, oldActiveCoords, newActiveCoords
     if (moveIsAllowed) {
         var state = grid[oldActiveCoords[0][0]][oldActiveCoords[0][1]]['state'];
         for (var i = 0; i < oldActiveCoords.length; i++) {
-            grid[oldActiveCoords[i][0]][oldActiveCoords[i][1]]['state'] = Game.gridStates.EMPTY;
+            grid[oldActiveCoords[i][0]][oldActiveCoords[i][1]]['state'] = Game.colors.EMPTY;
             grid[oldActiveCoords[i][0]][oldActiveCoords[i][1]]['isActive'] = false;
         }
         for (var i = 0; i < newActiveCoords.length; i++) {
@@ -295,7 +287,7 @@ Game.clearMatchedRows = function(grid) {
     var finishedRowNums = [];
     for (var rowNum = 0; rowNum < grid.length; rowNum++) {
         var emptyCols = grid[rowNum].filter(function(col) {
-            return col['state'] === Game.gridStates.EMPTY;
+            return col['state'] === Game.colors.EMPTY;
         });
         if (emptyCols.length === 0) {
             finishedRowNums.push(rowNum);
@@ -304,12 +296,12 @@ Game.clearMatchedRows = function(grid) {
     for (var i = 0; i < finishedRowNums.length; i++) {
         var finishedRowNum = finishedRowNums[i];
         for (var colNum = 0; colNum < grid[0].length; colNum++) {
-            grid[finishedRowNum][colNum]['state'] = Game.gridStates.EMPTY;
+            grid[finishedRowNum][colNum]['state'] = Game.colors.EMPTY;
         }
         for (rowNum = finishedRowNum-1; rowNum >= 0; rowNum--) {
             for (colNum = 0; colNum < grid[0].length; colNum++) {
                 grid[rowNum+1][colNum]['state'] = grid[rowNum][colNum]['state'];
-                grid[rowNum][colNum]['state'] = Game.gridStates.EMPTY;
+                grid[rowNum][colNum]['state'] = Game.colors.EMPTY;
             }
         }
         Game.finishedRowCount++;
@@ -409,7 +401,7 @@ Game.drawPauseScreen = function(ctx, pauseScreenText) {
     var pauseBoxHeight = 1.05 * fontHeight * (pauseScreenText.length + 0.5);
     var pauseBoxStartRow = 0.5 * (Game.display.height - Game.statusBarHeight - pauseBoxHeight);
 
-    ctx.fillStyle = Game.colors[Game.gridStates.EMPTY];
+    ctx.fillStyle = Game.colors.EMPTY;
     ctx.strokeStyle = Game.borderColor;
     ctx.fillRect(
         0.5 * Game.squareDim,
@@ -442,7 +434,7 @@ Game.drawGrid = function(ctx, grid, squareDim) {
     ctx.strokeStyle = Game.borderColor;
     for (var rowNum = 0; rowNum < grid.length; rowNum++) {
         for (var colNum = 0; colNum < grid[0].length; colNum++) {
-            ctx.fillStyle = Game.colors[grid[rowNum][colNum]['state']];
+            ctx.fillStyle = grid[rowNum][colNum]['state'];
             ctx.fillRect(
                 colNum * squareDim,
                 rowNum * squareDim,
@@ -460,7 +452,7 @@ Game.drawGrid = function(ctx, grid, squareDim) {
 };
 
 Game.drawStatusBar = function(ctx) {
-    ctx.fillStyle = Game.colors[Game.gridStates.EMPTY];
+    ctx.fillStyle = Game.colors.EMPTY;
     ctx.fillRect(
         0,
         Game.display.height - Game.statusBarHeight,
