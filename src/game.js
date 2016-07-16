@@ -61,36 +61,7 @@ Game.getEmptyGrid = function() {
 };
 
 Game.prepareNewGame = function() {
-    Game.keyPressed = {
-        left: {
-            'previous': false,
-            'current': false
-        },
-        right: {
-            'previous': false,
-            'current': false
-        },
-        down: {
-            'previous': false,
-            'current': false
-        },
-        clockwise: {
-            'previous': false,
-            'current': false
-        },
-        counterClockwise: {
-            'previous': false,
-            'current': false
-        },
-        reflect: {
-            'previous': false,
-            'current': false
-        },
-        pause: {
-            'previous': false,
-            'current': false
-        }
-    };
+    Game.keyPressed.initialize();
     Game.finishedRowCount = 0;
     Game.grid = Game.getEmptyGrid();
     Game.addNewBlock(Game.grid, Game.c.ALL_BLOCKS);
@@ -249,33 +220,20 @@ Game.clearMatchedRows = function(grid) {
     }
 };
 
-Game.processMovementKeys = function(grid) {
-    if (Game.keyPressed['left']['current'] &&
-        !Game.keyPressed['left']['previous']) {
-        Game.moveActiveBlock(grid, Game.c.actions.LEFT);
-    } else if (Game.keyPressed['right']['current'] &&
-        !Game.keyPressed['right']['previous']) {
-        Game.moveActiveBlock(grid, Game.c.actions.RIGHT);
-    } else if (Game.keyPressed['down']['current'] &&
-        !Game.keyPressed['down']['previous']) {
-        Game.moveActiveBlock(grid, Game.c.actions.DOWN);
-    } else if (Game.keyPressed['clockwise']['current'] &&
-        !Game.keyPressed['clockwise']['previous']) {
-        Game.moveActiveBlock(grid, Game.c.actions.CLOCKWISE);
-    } else if (Game.keyPressed['counterClockwise']['current'] &&
-        !Game.keyPressed['counterClockwise']['previous']) {
-        Game.moveActiveBlock(grid, Game.c.actions.COUNTERCLOCKWISE);
-    } else if (Game.keyPressed['reflect']['current'] &&
-        !Game.keyPressed['reflect']['previous']) {
-        Game.moveActiveBlock(grid, Game.c.actions.REFLECT);
+Game.processActionKeys = function(grid) {
+    for (var i = 0; i < Game.c.ACTION_MAP.length; i++) {
+        var keyCode = Game.c.ACTION_MAP[i][0];
+        var action = Game.c.ACTION_MAP[i][1];
+        if (Game.keyPressed.get(keyCode)['current'] &&
+            !Game.keyPressed.get(keyCode)['previous']) {
+            Game.moveActiveBlock(grid, action);
+            break;
+        }
     }
 
-    Game.keyPressed['left']['previous'] = Game.keyPressed['left']['current'];
-    Game.keyPressed['right']['previous'] = Game.keyPressed['right']['current'];
-    Game.keyPressed['down']['previous'] = Game.keyPressed['down']['current'];
-    Game.keyPressed['clockwise']['previous'] = Game.keyPressed['clockwise']['current'];
-    Game.keyPressed['counterClockwise']['previous'] = Game.keyPressed['counterClockwise']['current'];
-    Game.keyPressed['reflect']['previous'] = Game.keyPressed['reflect']['current'];
+    for (var i = 0; i < Game.c.ACTION_MAP.length; i++) {
+        Game.keyPressed.get(Game.c.ACTION_MAP[i][0])['previous'] = Game.keyPressed.get(Game.c.ACTION_MAP[i][0])['current'];
+    }
 };
 
 Game.processDownwardTick = function(grid, timeFrame) {
@@ -300,8 +258,8 @@ Game.processDownwardTick = function(grid, timeFrame) {
 };
 
 Game.processPauseKey = function(timeFrame) {
-    if (Game.keyPressed['pause']['current'] &&
-        !Game.keyPressed['pause']['previous']) {
+    if (Game.keyPressed.get(Game.c.keyCodes.SPACE)['current'] &&
+        !Game.keyPressed.get(Game.c.keyCodes.SPACE)['previous']) {
         if (Game.isPaused) {
             Game.isPaused = false;
             Game.isFirstRun = false;
@@ -314,7 +272,7 @@ Game.processPauseKey = function(timeFrame) {
             Game.isPaused = true;
         }
     }
-    Game.keyPressed['pause']['previous'] = Game.keyPressed['pause']['current'];
+    Game.keyPressed.get(Game.c.keyCodes.SPACE)['previous'] = Game.keyPressed.get(Game.c.keyCodes.SPACE)['current'];
 };
 
 Game.update = function(grid, timeFrame) {
@@ -325,7 +283,7 @@ Game.update = function(grid, timeFrame) {
             Game.prepareNewGame();
             gameOver = false;
         } else {
-            Game.processMovementKeys(grid);
+            Game.processActionKeys(grid);
             gameOver = !Game.processDownwardTick(grid, timeFrame);
         }
     }
@@ -435,39 +393,11 @@ Game.draw = function(ctx, grid, squareDim, pauseScreenText) {
 };
 
 Game.keyDownHandler = function(e) {
-    if (e.keyCode === Game.c.keyCodes.LEFT_ARROW) {
-        Game.keyPressed['left']['current'] = true;
-    } else if (e.keyCode === Game.c.keyCodes.RIGHT_ARROW) {
-        Game.keyPressed['right']['current'] = true;
-    } else if (e.keyCode === Game.c.keyCodes.DOWN_ARROW) {
-        Game.keyPressed['down']['current'] = true;
-    } else if (e.keyCode === Game.c.keyCodes.C) {
-        Game.keyPressed['clockwise']['current'] = true;
-    } else if (e.keyCode === Game.c.keyCodes.Z) {
-        Game.keyPressed['counterClockwise']['current'] = true;
-    } else if (e.keyCode === Game.c.keyCodes.X) {
-        Game.keyPressed['reflect']['current'] = true;
-    } else if (e.keyCode === Game.c.keyCodes.SPACE) {
-        Game.keyPressed['pause']['current'] = true;
-    }
+    Game.keyPressed.get(e.keyCode)['current'] = true;
 };
 
 Game.keyUpHandler = function(e) {
-    if (e.keyCode === Game.c.keyCodes.LEFT_ARROW) {
-        Game.keyPressed['left']['current'] = false;
-    } else if (e.keyCode === Game.c.keyCodes.RIGHT_ARROW) {
-        Game.keyPressed['right']['current'] = false;
-    } else if (e.keyCode === Game.c.keyCodes.DOWN_ARROW) {
-        Game.keyPressed['down']['current'] = false;
-    } else if (e.keyCode === Game.c.keyCodes.C) {
-        Game.keyPressed['clockwise']['current'] = false;
-    } else if (e.keyCode === Game.c.keyCodes.Z) {
-        Game.keyPressed['counterClockwise']['current'] = false;
-    } else if (e.keyCode === Game.c.keyCodes.X) {
-        Game.keyPressed['reflect']['current'] = false;
-    } else if (e.keyCode === Game.c.keyCodes.SPACE) {
-        Game.keyPressed['pause']['current'] = false;
-    }
+    Game.keyPressed.get(e.keyCode)['current'] = false;
 };
 
 Game.getPauseScreenText = function() {
@@ -537,6 +467,15 @@ Game.setConstants = function() {
         PAUSE: 'pause'
     };
 
+    Game.c.ACTION_MAP = [
+        [Game.c.keyCodes.LEFT_ARROW, Game.c.actions.LEFT],
+        [Game.c.keyCodes.RIGHT_ARROW, Game.c.actions.RIGHT],
+        [Game.c.keyCodes.DOWN_ARROW, Game.c.actions.DOWN],
+        [Game.c.keyCodes.C, Game.c.actions.CLOCKWISE],
+        [Game.c.keyCodes.Z, Game.c.actions.COUNTERCLOCKWISE],
+        [Game.c.keyCodes.X, Game.c.actions.REFLECT]
+    ];
+
     Game.c.colors = {
         BORDER: 'black',
         EMPTY: 'white',
@@ -570,4 +509,20 @@ Game.setConstants = function() {
     ];
 
     Game.c.FONT_SUFFIX = 'px serif';
+};
+
+Game.keyPressed = {};
+
+Game.keyPressed.initialize = function() {
+    this.values = {};
+};
+
+Game.keyPressed.get = function(keyCode) {
+    if (!this.values.hasOwnProperty(keyCode)) {
+        this.values[keyCode] = {
+            'previous': false,
+            'current': false
+        };
+    }
+    return this.values[keyCode];
 };
