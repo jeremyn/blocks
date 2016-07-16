@@ -5,7 +5,7 @@
 var Game = {};
 
 Game.run = function (canvasId, squareDim, statusBarHeight, borderLineWidth, gridLineWidth) {
-    Game.setConstants();
+    Game.c = Game.getConstants();
 
     document.addEventListener('keydown', Game.keyDownHandler, false);
     document.addEventListener('keyup', Game.keyUpHandler, false);
@@ -430,10 +430,10 @@ Game.main = function(timeFrame) {
     window.requestAnimationFrame(Game.main);
 };
 
-Game.setConstants = function() {
-    Game.c = {};
+Game.getConstants = function() {
+    var c = {};
 
-    Game.c.keyCodes = {
+    c.keyCodes = {
         SPACE: 32,
         LEFT_ARROW: 37,
         RIGHT_ARROW: 39,
@@ -443,7 +443,7 @@ Game.setConstants = function() {
         Z: 90
     };
 
-    Game.c.CONTROLS_TEXT = [
+    c.CONTROLS_TEXT = [
         "-Controls-",
         "Pause/unpause: \<space\>",
         "Move block: left/right/down arrow",
@@ -452,7 +452,7 @@ Game.setConstants = function() {
         "Rotate clockwise: 'c'"
     ];
 
-    Game.c.actions = {
+    c.actions = {
         DOWN: 'down',
         LEFT: 'left',
         RIGHT: 'right',
@@ -462,16 +462,16 @@ Game.setConstants = function() {
         PAUSE: 'pause'
     };
 
-    Game.c.ACTION_MAP = [
-        [Game.c.keyCodes.LEFT_ARROW, Game.c.actions.LEFT],
-        [Game.c.keyCodes.RIGHT_ARROW, Game.c.actions.RIGHT],
-        [Game.c.keyCodes.DOWN_ARROW, Game.c.actions.DOWN],
-        [Game.c.keyCodes.C, Game.c.actions.CLOCKWISE],
-        [Game.c.keyCodes.Z, Game.c.actions.COUNTERCLOCKWISE],
-        [Game.c.keyCodes.X, Game.c.actions.REFLECT]
+    c.ACTION_MAP = [
+        [c.keyCodes.LEFT_ARROW, c.actions.LEFT],
+        [c.keyCodes.RIGHT_ARROW, c.actions.RIGHT],
+        [c.keyCodes.DOWN_ARROW, c.actions.DOWN],
+        [c.keyCodes.C, c.actions.CLOCKWISE],
+        [c.keyCodes.Z, c.actions.COUNTERCLOCKWISE],
+        [c.keyCodes.X, c.actions.REFLECT]
     ];
 
-    Game.c.colors = {
+    c.colors = {
         BORDER: 'black',
         EMPTY: 'white',
         L: 'silver',
@@ -481,29 +481,31 @@ Game.setConstants = function() {
         Z: 'aqua'
     };
 
-    Game.c.ALL_BLOCKS = [
+    c.ALL_BLOCKS = [
         [
-            [Game.c.colors.L, Game.c.colors.L, Game.c.colors.L],
-            [Game.c.colors.L, Game.c.colors.EMPTY, Game.c.colors.EMPTY]
+            [c.colors.L, c.colors.L, c.colors.L],
+            [c.colors.L, c.colors.EMPTY, c.colors.EMPTY]
         ],
         [
-            [Game.c.colors.SQUARE, Game.c.colors.SQUARE],
-            [Game.c.colors.SQUARE, Game.c.colors.SQUARE]
+            [c.colors.SQUARE, c.colors.SQUARE],
+            [c.colors.SQUARE, c.colors.SQUARE]
         ],
         [
-            [Game.c.colors.STRAIGHT, Game.c.colors.STRAIGHT, Game.c.colors.STRAIGHT, Game.c.colors.STRAIGHT]
+            [c.colors.STRAIGHT, c.colors.STRAIGHT, c.colors.STRAIGHT, c.colors.STRAIGHT]
         ],
         [
-            [Game.c.colors.T, Game.c.colors.T, Game.c.colors.T],
-            [Game.c.colors.EMPTY, Game.c.colors.T, Game.c.colors.EMPTY]
+            [c.colors.T, c.colors.T, c.colors.T],
+            [c.colors.EMPTY, c.colors.T, c.colors.EMPTY]
         ],
         [
-            [Game.c.colors.Z, Game.c.colors.Z, Game.c.colors.EMPTY],
-            [Game.c.colors.EMPTY, Game.c.colors.Z, Game.c.colors.Z]
+            [c.colors.Z, c.colors.Z, c.colors.EMPTY],
+            [c.colors.EMPTY, c.colors.Z, c.colors.Z]
         ]
     ];
 
-    Game.c.FONT_SUFFIX = 'px serif';
+    c.FONT_SUFFIX = 'px serif';
+
+    return c;
 };
 
 Game.keyPressed = {};
