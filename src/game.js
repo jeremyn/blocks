@@ -4,7 +4,7 @@
 'use strict';
 var Game = {};
 
-Game.run = function (squareDim, canvasId) {
+Game.run = function (canvasId, squareDim, statusBarHeight, borderLineWidth, gridLineWidth) {
     Game.setConstants();
 
     document.addEventListener('keydown', Game.keyDownHandler, false);
@@ -14,10 +14,9 @@ Game.run = function (squareDim, canvasId) {
     Game.ctx = Game.display.getContext('2d');
 
     Game.squareDim = squareDim;
-    Game.borderLineWidth = 6;
-    Game.gridLineWidth = 1;
-
-    Game.statusBarHeight = 50;
+    Game.statusBarHeight = statusBarHeight;
+    Game.borderLineWidth = borderLineWidth;
+    Game.gridLineWidth = gridLineWidth;
 
     // in milliseconds
     Game.downTickDuration = 500;
