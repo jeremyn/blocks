@@ -11,7 +11,6 @@ Game.run = function (canvasId, squareDim, statusBarHeight, borderLineWidth, grid
     document.addEventListener('keyup', Game.keyUpHandler, false);
 
     Game.display = document.getElementById(canvasId);
-    Game.ctx = Game.display.getContext('2d');
 
     Game.squareDim = squareDim;
     Game.statusBarHeight = statusBarHeight;
@@ -29,7 +28,7 @@ Game.run = function (canvasId, squareDim, statusBarHeight, borderLineWidth, grid
 
     Game.prepareNewGame();
 
-    Game.draw(Game.ctx, Game.grid, Game.squareDim, Game.getPauseScreenText());
+    Game.draw(Game.display.getContext('2d'), Game.grid, Game.squareDim, Game.getPauseScreenText());
 
     window.requestAnimationFrame(Game.main);
 };
@@ -425,7 +424,7 @@ Game.main = function(timeFrame) {
         Game.shouldResetLastDownTick = true;
     }
     if (Game.shouldRedraw) {
-        Game.draw(Game.ctx, Game.grid, Game.squareDim, Game.getPauseScreenText());
+        Game.draw(Game.display.getContext('2d'), Game.grid, Game.squareDim, Game.getPauseScreenText());
     }
     window.requestAnimationFrame(Game.main);
 };
