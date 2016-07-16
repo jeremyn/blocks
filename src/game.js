@@ -24,11 +24,13 @@ Game.run = function (canvasId, squareDim, statusBarHeight, borderLineWidth, grid
     // in milliseconds
     Game.downTickDuration = 500;
 
-    Game.isGameOver = false;
-    Game.isFirstRun = true;
-    Game.isPaused = true;
-    Game.shouldRedraw = false;
-    Game.shouldResetLastDownTick = true;
+    Game.f = {
+        isGameOver: false,
+        isFirstRun: true,
+        isPaused: true,
+        shouldRedraw: false,
+        shouldResetLastDownTick: true
+    };
 
     Game.prepareNewGame();
 
@@ -274,25 +276,25 @@ Game.processDownwardTick = function(grid, timeFrame) {
 Game.processPauseKey = function(timeFrame) {
     if (Game.keyPressed.get(Game.c.keyCodes.SPACE)['current'] &&
         !Game.keyPressed.get(Game.c.keyCodes.SPACE)['previous']) {
-        if (Game.isPaused) {
-            Game.isPaused = false;
-            Game.isFirstRun = false;
-            Game.shouldRedraw = true;
-            if (Game.shouldResetLastDownTick) {
+        if (Game.f.isPaused) {
+            Game.f.isPaused = false;
+            Game.f.isFirstRun = false;
+            Game.f.shouldRedraw = true;
+            if (Game.f.shouldResetLastDownTick) {
                 Game.lastDownTick = timeFrame;
-                Game.shouldResetLastDownTick = false;
+                Game.f.shouldResetLastDownTick = false;
             }
         } else {
-            Game.isPaused = true;
+            Game.f.isPaused = true;
         }
     }
     Game.keyPressed.get(Game.c.keyCodes.SPACE)['previous'] = Game.keyPressed.get(Game.c.keyCodes.SPACE)['current'];
 };
 
 Game.update = function(grid, timeFrame) {
-    var isGameOver = Game.isGameOver;
+    var isGameOver = Game.f.isGameOver;
     Game.processPauseKey(timeFrame);
-    if (!Game.isPaused) {
+    if (!Game.f.isPaused) {
         if (isGameOver) {
             Game.prepareNewGame();
             isGameOver = false;
@@ -400,9 +402,9 @@ Game.draw = function(ctx, grid, ds, colors, fontSuffix, pauseScreenText, finishe
     Game.drawGrid(ctx, grid, ds, colors);
     Game.drawStatusBar(ctx, ds, colors, fontSuffix, finishedRowCount);
     Game.drawBorders(ctx, ds, colors);
-    if (Game.isPaused) {
+    if (Game.f.isPaused) {
         Game.drawPauseScreen(ctx, ds, colors, fontSuffix, pauseScreenText);
-        Game.shouldRedraw = false;
+        Game.f.shouldRedraw = false;
     }
 };
 
@@ -416,13 +418,13 @@ Game.keyUpHandler = function(e) {
 
 Game.getPauseScreenText = function() {
     var pauseHeaderText;
-    if (Game.isFirstRun) {
+    if (Game.f.isFirstRun) {
         pauseHeaderText = [
             "Welcome to Blocks!",
             "Press \<space\> to unpause and begin.",
             ""
         ];
-    } else if (Game.isGameOver) {
+    } else if (Game.f.isGameOver) {
         pauseHeaderText = [
             "Game over!",
             "Press \<space\> to play again.",
@@ -438,12 +440,12 @@ Game.getPauseScreenText = function() {
 };
 
 Game.main = function(timeFrame) {
-    Game.isGameOver = Game.update(Game.grid, timeFrame);
-    if (Game.isGameOver) {
-        Game.isPaused = true;
-        Game.shouldResetLastDownTick = true;
+    Game.f.isGameOver = Game.update(Game.grid, timeFrame);
+    if (Game.f.isGameOver) {
+        Game.f.isPaused = true;
+        Game.f.shouldResetLastDownTick = true;
     }
-    if (Game.shouldRedraw) {
+    if (Game.f.shouldRedraw) {
         Game.draw(
             Game.display.getContext('2d'),
             Game.grid,
