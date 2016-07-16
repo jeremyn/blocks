@@ -4,37 +4,33 @@
 'use strict';
 var Game = {};
 
-Game.run = function(squareDim, canvasId) {
+Game.run = function (squareDim, canvasId) {
     Game.setConstants();
+
+    document.addEventListener('keydown', Game.keyDownHandler, false);
+    document.addEventListener('keyup', Game.keyUpHandler, false);
+
+    Game.display = document.getElementById(canvasId);
+    Game.ctx = Game.display.getContext('2d');
 
     Game.squareDim = squareDim;
     Game.borderLineWidth = 6;
     Game.gridLineWidth = 1;
 
-    Game.isPaused = true;
-
-    Game.isFirstRun = true;
-
-    document.addEventListener('keydown', Game.keyDownHandler, false);
-    document.addEventListener('keyup', Game.keyUpHandler, false);
+    Game.statusBarHeight = 50;
 
     // in milliseconds
     Game.downTickDuration = 500;
 
-    Game.display = document.getElementById(canvasId);
-
-    Game.statusBarHeight = 50;
-
     Game.gameOver = false;
+    Game.isFirstRun = true;
+    Game.isPaused = true;
+    Game.shouldRedraw = false;
+    Game.shouldResetLastDownTick = true;
 
     Game.prepareNewGame();
 
-    Game.ctx = Game.display.getContext('2d');
-
     Game.draw(Game.ctx, Game.grid, Game.squareDim, Game.getPauseScreenText());
-    Game.shouldRedraw = false;
-
-    Game.shouldResetLastDownTick = true;
 
     window.requestAnimationFrame(Game.main);
 };
