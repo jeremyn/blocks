@@ -21,9 +21,6 @@ Game.run = function (canvasId, squareDim, statusBarHeight, borderLineWidth, grid
         statusBarHeight: statusBarHeight
     };
 
-    // in milliseconds
-    Game.downTickDuration = 500;
-
     Game.f = {
         isGameOver: false,
         isFirstRun: true,
@@ -252,7 +249,7 @@ Game.processActionKeys = function(grid) {
 
 Game.processDownwardTick = function(grid, timeFrame) {
     var keepGoing = true;
-    if (timeFrame > (Game.lastDownTick + Game.downTickDuration)) {
+    if (timeFrame > (Game.lastDownTick + Game.c.DOWN_TICK_DURATION)) {
         Game.lastDownTick = timeFrame;
         var moveWorked = Game.moveActiveBlock(grid, Game.c.actions.DOWN);
 
@@ -533,6 +530,9 @@ Game.getConstants = function() {
     ];
 
     c.FONT_SUFFIX = 'px serif';
+
+    // in milliseconds
+    c.DOWN_TICK_DURATION = 500;
 
     return c;
 };
