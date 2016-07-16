@@ -71,10 +71,10 @@ Game.prepareNewGame = function() {
         Game.grid = Game.getEmptyGrid(numRows, numCols, Game.c.colors.EMPTY);
     }
 
-    Game.grid = Game.addNewBlock(Game.grid, Game.c.ALL_BLOCKS).newGrid;
+    Game.grid = Game.addNewBlock(Game.grid, Game.c.ALL_BLOCKS, Game.c.colors.EMPTY).newGrid;
 };
 
-Game.addNewBlock = function(inputGrid, allBlocks) {
+Game.addNewBlock = function(inputGrid, allBlocks, emptyState) {
     var addBlockSuccessful = true;
     var outputGrid = Game.getGridCopy(inputGrid);
 
@@ -84,8 +84,8 @@ Game.addNewBlock = function(inputGrid, allBlocks) {
         for (var colNum = 0; colNum < newBlock[0].length; colNum++) {
             var gridCell = outputGrid[rowNum][startColNum + colNum];
             var blockCellState = newBlock[rowNum][colNum];
-            if (blockCellState !== Game.c.colors.EMPTY) {
-                if (gridCell['state'] === Game.c.colors.EMPTY) {
+            if (blockCellState !== emptyState) {
+                if (gridCell['state'] === emptyState) {
                     gridCell['state'] = blockCellState;
                     gridCell['isActive'] = true;
                 } else {
@@ -262,7 +262,7 @@ Game.processDownwardTick = function(grid, timeFrame) {
 
             Game.clearMatchedRows(grid);
 
-            var results = Game.addNewBlock(grid, Game.c.ALL_BLOCKS);
+            var results = Game.addNewBlock(grid, Game.c.ALL_BLOCKS, Game.c.colors.EMPTY);
             Game.grid = results.newGrid;
             keepGoing = results.addBlockSuccessful;
         }
