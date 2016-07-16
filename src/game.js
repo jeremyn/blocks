@@ -12,10 +12,14 @@ Game.run = function (canvasId, squareDim, statusBarHeight, borderLineWidth, grid
 
     Game.display = document.getElementById(canvasId);
 
-    Game.squareDim = squareDim;
-    Game.statusBarHeight = statusBarHeight;
-    Game.borderLineWidth = borderLineWidth;
-    Game.gridLineWidth = gridLineWidth;
+    Game.ds = {
+        borderLineWidth: borderLineWidth,
+        displayHeight: Game.display.height,
+        displayWidth: Game.display.width,
+        gridLineWidth: gridLineWidth,
+        squareDim: squareDim,
+        statusBarHeight: statusBarHeight
+    };
 
     // in milliseconds
     Game.downTickDuration = 500;
@@ -28,7 +32,7 @@ Game.run = function (canvasId, squareDim, statusBarHeight, borderLineWidth, grid
 
     Game.prepareNewGame();
 
-    Game.draw(Game.display.getContext('2d'), Game.grid, Game.squareDim, Game.getPauseScreenText());
+    Game.draw(Game.display.getContext('2d'), Game.grid, Game.ds.squareDim, Game.getPauseScreenText());
 
     window.requestAnimationFrame(Game.main);
 };
@@ -52,8 +56,8 @@ Game.prepareNewGame = function() {
     Game.keyPressed.initialize();
     Game.finishedRowCount = 0;
 
-    var numRows = (Game.display.height - Game.statusBarHeight) / Game.squareDim;
-    var numCols = Game.display.width / Game.squareDim;
+    var numRows = (Game.ds.displayHeight - Game.ds.statusBarHeight) / Game.ds.squareDim;
+    var numCols = Game.ds.displayWidth / Game.ds.squareDim;
     if ((numRows % 2 !== 0) || (numCols % 2 !== 0)) {
         throw new Error('bad grid dimensions');
     } else {
@@ -294,26 +298,26 @@ Game.update = function(grid, timeFrame) {
 
 Game.drawPauseScreen = function(ctx, pauseScreenText) {
     ctx.fillStyle = "rgba(0, 0, 0, 0.0)";
-    ctx.fillRect(0, 0, Game.display.width, Game.display.height - Game.statusBarHeight);
+    ctx.fillRect(0, 0, Game.ds.displayWidth, Game.ds.displayHeight - Game.ds.statusBarHeight);
     ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
-    ctx.fillRect(0, 0, Game.display.width, Game.display.height - Game.statusBarHeight);
+    ctx.fillRect(0, 0, Game.ds.displayWidth, Game.ds.displayHeight - Game.ds.statusBarHeight);
 
-    var fontHeight = 0.5 * Game.statusBarHeight;
+    var fontHeight = 0.5 * Game.ds.statusBarHeight;
     var pauseBoxHeight = 1.05 * fontHeight * (pauseScreenText.length + 0.5);
-    var pauseBoxStartRow = 0.5 * (Game.display.height - Game.statusBarHeight - pauseBoxHeight);
+    var pauseBoxStartRow = 0.5 * (Game.ds.displayHeight - Game.ds.statusBarHeight - pauseBoxHeight);
 
     ctx.fillStyle = Game.c.colors.EMPTY;
     ctx.strokeStyle = Game.c.colors.BORDER;
     ctx.fillRect(
-        0.5 * Game.squareDim,
+        0.5 * Game.ds.squareDim,
         pauseBoxStartRow,
-        Game.display.width - Game.squareDim,
+        Game.ds.displayWidth - Game.ds.squareDim,
         pauseBoxHeight
     );
     ctx.strokeRect(
-        0.5 * Game.squareDim,
+        0.5 * Game.ds.squareDim,
         pauseBoxStartRow,
-        Game.display.width - Game.squareDim,
+        Game.ds.displayWidth - Game.ds.squareDim,
         pauseBoxHeight
     );
 
@@ -323,15 +327,15 @@ Game.drawPauseScreen = function(ctx, pauseScreenText) {
         var thisText = pauseScreenText[i];
         ctx.fillText(
             thisText,
-            Game.squareDim,
+            Game.ds.squareDim,
             pauseBoxStartRow + 1.055 * fontHeight * (i+1),
-            Game.display.width - 2 * Game.squareDim
+            Game.ds.displayWidth - 2 * Game.ds.squareDim
         );
     }
 };
 
 Game.drawGrid = function(ctx, grid, squareDim) {
-    ctx.lineWidth = Game.gridLineWidth;
+    ctx.lineWidth = Game.ds.gridLineWidth;
     ctx.strokeStyle = Game.c.colors.BORDER;
     for (var rowNum = 0; rowNum < grid.length; rowNum++) {
         for (var colNum = 0; colNum < grid[0].length; colNum++) {
@@ -356,30 +360,30 @@ Game.drawStatusBar = function(ctx) {
     ctx.fillStyle = Game.c.colors.EMPTY;
     ctx.fillRect(
         0,
-        Game.display.height - Game.statusBarHeight,
-        Game.display.width,
-        Game.statusBarHeight
+        Game.ds.displayHeight - Game.ds.statusBarHeight,
+        Game.ds.displayWidth,
+        Game.ds.statusBarHeight
     );
 
     var scoreText = 'Lines completed: ' + Game.finishedRowCount;
-    var fontHeight = 0.5 * Game.statusBarHeight;
+    var fontHeight = 0.5 * Game.ds.statusBarHeight;
     ctx.font = fontHeight + Game.c.FONT_SUFFIX;
     ctx.fillStyle = Game.c.colors.BORDER;
     ctx.fillText(
         scoreText,
-        (0.5 * Game.display.width) - (0.5 * ctx.measureText(scoreText).width),
-        Game.display.height - (0.5 * Game.statusBarHeight) + (0.35 * fontHeight)
+        (0.5 * Game.ds.displayWidth) - (0.5 * ctx.measureText(scoreText).width),
+        Game.ds.displayHeight - (0.5 * Game.ds.statusBarHeight) + (0.35 * fontHeight)
     );
 };
 
 Game.drawBorders = function(ctx) {
     ctx.strokeStyle = Game.c.colors.BORDER;
-    ctx.lineWidth = Game.borderLineWidth;
-    ctx.strokeRect(0, 0, Game.display.width, Game.display.height);
-    ctx.lineWidth = 0.5 * Game.borderLineWidth;
+    ctx.lineWidth = Game.ds.borderLineWidth;
+    ctx.strokeRect(0, 0, Game.ds.displayWidth, Game.ds.displayHeight);
+    ctx.lineWidth = 0.5 * Game.ds.borderLineWidth;
     ctx.beginPath();
-    ctx.moveTo(0, Game.display.height - Game.statusBarHeight);
-    ctx.lineTo(Game.display.width, Game.display.height - Game.statusBarHeight);
+    ctx.moveTo(0, Game.ds.displayHeight - Game.ds.statusBarHeight);
+    ctx.lineTo(Game.ds.displayWidth, Game.ds.displayHeight - Game.ds.statusBarHeight);
     ctx.closePath();
     ctx.stroke();
 };
@@ -432,7 +436,7 @@ Game.main = function(timeFrame) {
         Game.shouldResetLastDownTick = true;
     }
     if (Game.shouldRedraw) {
-        Game.draw(Game.display.getContext('2d'), Game.grid, Game.squareDim, Game.getPauseScreenText());
+        Game.draw(Game.display.getContext('2d'), Game.grid, Game.ds.squareDim, Game.getPauseScreenText());
     }
     window.requestAnimationFrame(Game.main);
 };
