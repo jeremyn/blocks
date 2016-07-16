@@ -60,7 +60,7 @@ Game.getEmptyGrid = function(numRows, numCols, initialState) {
 };
 
 Game.prepareNewGame = function() {
-    Game.keyPressed.initialize();
+    Game.keyPressed = new KeypressStatus();
     Game.finishedRowCount = 0;
 
     var numRows = (Game.ds.displayHeight - Game.ds.statusBarHeight) / Game.ds.squareDim;
@@ -537,13 +537,11 @@ Game.getConstants = function() {
     return c;
 };
 
-Game.keyPressed = {};
-
-Game.keyPressed.initialize = function() {
+var KeypressStatus = function() {
     this.values = {};
 };
 
-Game.keyPressed.get = function(keyCode) {
+KeypressStatus.prototype.get = function(keyCode) {
     if (!this.values.hasOwnProperty(keyCode)) {
         this.values[keyCode] = {
             'previous': false,
