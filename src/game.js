@@ -4,7 +4,7 @@
 'use strict';
 var Game = {};
 
-Game.initialize = function(squareDim, canvasId) {
+Game.run = function(squareDim, canvasId) {
     Game.squareDim = squareDim;
     Game.borderLineWidth = 6;
     Game.gridLineWidth = 1;
@@ -96,6 +96,8 @@ Game.initialize = function(squareDim, canvasId) {
     Game.shouldRedraw = false;
 
     Game.shouldResetLastDownTick = true;
+
+    window.requestAnimationFrame(Game.main);
 };
 
 Game.getEmptyGrid = function() {

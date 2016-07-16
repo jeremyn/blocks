@@ -10,10 +10,7 @@
         Problem displaying the canvas!
     </canvas>
     <script>
-        window.onload = function() {
-            Game.initialize(50, 'display');
-            window.requestAnimationFrame(Game.main);
-        };
+        window.onload = Game.run(50, 'display');
     </script>
 </body>
 </html>
