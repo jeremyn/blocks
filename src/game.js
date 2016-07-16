@@ -5,30 +5,11 @@
 var Game = {};
 
 Game.run = function(squareDim, canvasId) {
+    Game.setConstants();
+
     Game.squareDim = squareDim;
     Game.borderLineWidth = 6;
     Game.gridLineWidth = 1;
-
-    Game.keyCodes = {
-        SPACE: 32,
-        LEFT_ARROW: 37,
-        RIGHT_ARROW: 39,
-        DOWN_ARROW: 40,
-        C: 67,
-        X: 88,
-        Z: 90
-    };
-
-    Game.controlsText = [
-        "-Controls-",
-        "Pause/unpause: \<space\>",
-        "Move block: left/right/down arrow",
-        "Rotate counterclockwise: 'z'",
-        "Reflect around y-axis: 'x'",
-        "Rotate clockwise: 'c'"
-    ];
-
-    Game.fontSuffix = 'px serif';
 
     Game.isPaused = true;
 
@@ -40,51 +21,9 @@ Game.run = function(squareDim, canvasId) {
     // in milliseconds
     Game.downTickDuration = 500;
 
-    Game.actions = {
-        DOWN: 'down',
-        LEFT: 'left',
-        RIGHT: 'right',
-        CLOCKWISE: 'clockwise',
-        COUNTERCLOCKWISE: 'counterclockwise',
-        REFLECT: 'reflect',  // reflect around y-axis
-        PAUSE: 'pause'
-    };
-
-    Game.colors = {
-        BORDER: 'black',
-        EMPTY: 'white',
-        L: 'silver',
-        SQUARE: 'red',
-        STRAIGHT: 'fuchsia',
-        T: 'lime',
-        Z: 'aqua'
-    };
-
     Game.display = document.getElementById(canvasId);
 
     Game.statusBarHeight = 50;
-
-    Game.allBlocks = [
-        [
-            [Game.colors.L, Game.colors.L, Game.colors.L],
-            [Game.colors.L, Game.colors.EMPTY, Game.colors.EMPTY]
-        ],
-        [
-            [Game.colors.SQUARE, Game.colors.SQUARE],
-            [Game.colors.SQUARE, Game.colors.SQUARE]
-        ],
-        [
-            [Game.colors.STRAIGHT, Game.colors.STRAIGHT, Game.colors.STRAIGHT, Game.colors.STRAIGHT]
-        ],
-        [
-            [Game.colors.T, Game.colors.T, Game.colors.T],
-            [Game.colors.EMPTY, Game.colors.T, Game.colors.EMPTY]
-        ],
-        [
-            [Game.colors.Z, Game.colors.Z, Game.colors.EMPTY],
-            [Game.colors.EMPTY, Game.colors.Z, Game.colors.Z]
-        ]
-    ];
 
     Game.gameOver = false;
 
@@ -111,7 +50,7 @@ Game.getEmptyGrid = function() {
             var row = [];
             for (var colNum = 0; colNum < gridWidth; colNum++) {
                 row.push({
-                    state: Game.colors.EMPTY,
+                    state: Game.c.colors.EMPTY,
                     isActive: false
                 });
             }
@@ -154,7 +93,7 @@ Game.prepareNewGame = function() {
     };
     Game.finishedRowCount = 0;
     Game.grid = Game.getEmptyGrid();
-    Game.addNewBlock(Game.grid, Game.allBlocks);
+    Game.addNewBlock(Game.grid, Game.c.ALL_BLOCKS);
 };
 
 Game.addNewBlock = function(grid, allBlocks) {
@@ -166,8 +105,8 @@ Game.addNewBlock = function(grid, allBlocks) {
         for (var colNum = 0; colNum < newBlock[0].length; colNum++) {
             var gridCell = grid[rowNum][startColNum + colNum];
             var blockCellState = newBlock[rowNum][colNum];
-            if (blockCellState !== Game.colors.EMPTY) {
-                if (gridCell['state'] === Game.colors.EMPTY) {
+            if (blockCellState !== Game.c.colors.EMPTY) {
+                if (gridCell['state'] === Game.c.colors.EMPTY) {
                     gridCell['state'] = blockCellState;
                     gridCell['isActive'] = true;
                 } else {
@@ -205,7 +144,7 @@ Game.updateActiveBlockPosition = function(grid, oldActiveCoords, newActiveCoords
             (0 <= newCoord[1]) && (newCoord[1] < grid[0].length) &&
             (
                 (grid[newCoord[0]][newCoord[1]]['isActive'] === true) ||
-                (grid[newCoord[0]][newCoord[1]]['state'] === Game.colors.EMPTY)
+                (grid[newCoord[0]][newCoord[1]]['state'] === Game.c.colors.EMPTY)
             )
         );
         if (!moveIsAllowed) {
@@ -216,7 +155,7 @@ Game.updateActiveBlockPosition = function(grid, oldActiveCoords, newActiveCoords
     if (moveIsAllowed) {
         var state = grid[oldActiveCoords[0][0]][oldActiveCoords[0][1]]['state'];
         for (var i = 0; i < oldActiveCoords.length; i++) {
-            grid[oldActiveCoords[i][0]][oldActiveCoords[i][1]]['state'] = Game.colors.EMPTY;
+            grid[oldActiveCoords[i][0]][oldActiveCoords[i][1]]['state'] = Game.c.colors.EMPTY;
             grid[oldActiveCoords[i][0]][oldActiveCoords[i][1]]['isActive'] = false;
         }
         for (var i = 0; i < newActiveCoords.length; i++) {
@@ -229,10 +168,10 @@ Game.updateActiveBlockPosition = function(grid, oldActiveCoords, newActiveCoords
 
 Game.getUpdatedCoords = function(oldCoords, action) {
     var newCoords;
-    if (action === Game.actions.CLOCKWISE) {
+    if (action === Game.c.actions.CLOCKWISE) {
         newCoords = oldCoords;
         for (var j = 0; j < 3; j++) {
-            newCoords = Game.getUpdatedCoords(newCoords, Game.actions.COUNTERCLOCKWISE);
+            newCoords = Game.getUpdatedCoords(newCoords, Game.c.actions.COUNTERCLOCKWISE);
         }
     } else {
         var rows = oldCoords.map(function(c) { return c[0]; });
@@ -250,16 +189,16 @@ Game.getUpdatedCoords = function(oldCoords, action) {
             var oldCol = oldCoords[i][1];
             var newRow;
             var newCol;
-            if (action === Game.actions.LEFT) {
+            if (action === Game.c.actions.LEFT) {
                 newRow = oldRow;
                 newCol = oldCol-1;
-            } else if (action === Game.actions.RIGHT) {
+            } else if (action === Game.c.actions.RIGHT) {
                 newRow = oldRow;
                 newCol = oldCol+1;
-            } else if (action === Game.actions.DOWN) {
+            } else if (action === Game.c.actions.DOWN) {
                 newRow = oldRow+1;
                 newCol = oldCol;
-            } else if (action === Game.actions.COUNTERCLOCKWISE) {
+            } else if (action === Game.c.actions.COUNTERCLOCKWISE) {
                 newRow = minRow+((maxCol-minCol)-(oldCol-minCol));
                 newCol = minCol+(oldRow-minRow);
 
@@ -269,7 +208,7 @@ Game.getUpdatedCoords = function(oldCoords, action) {
                 } else if (new Set(cols).size === 1) {
                     newCol--;
                 }
-            } else if (action === Game.actions.REFLECT) {
+            } else if (action === Game.c.actions.REFLECT) {
                 newRow = oldRow;
                 newCol = maxCol - oldCol + minCol;
             }
@@ -289,7 +228,7 @@ Game.clearMatchedRows = function(grid) {
     var finishedRowNums = [];
     for (var rowNum = 0; rowNum < grid.length; rowNum++) {
         var emptyCols = grid[rowNum].filter(function(col) {
-            return col['state'] === Game.colors.EMPTY;
+            return col['state'] === Game.c.colors.EMPTY;
         });
         if (emptyCols.length === 0) {
             finishedRowNums.push(rowNum);
@@ -298,12 +237,12 @@ Game.clearMatchedRows = function(grid) {
     for (var i = 0; i < finishedRowNums.length; i++) {
         var finishedRowNum = finishedRowNums[i];
         for (var colNum = 0; colNum < grid[0].length; colNum++) {
-            grid[finishedRowNum][colNum]['state'] = Game.colors.EMPTY;
+            grid[finishedRowNum][colNum]['state'] = Game.c.colors.EMPTY;
         }
         for (rowNum = finishedRowNum-1; rowNum >= 0; rowNum--) {
             for (colNum = 0; colNum < grid[0].length; colNum++) {
                 grid[rowNum+1][colNum]['state'] = grid[rowNum][colNum]['state'];
-                grid[rowNum][colNum]['state'] = Game.colors.EMPTY;
+                grid[rowNum][colNum]['state'] = Game.c.colors.EMPTY;
             }
         }
         Game.finishedRowCount++;
@@ -313,22 +252,22 @@ Game.clearMatchedRows = function(grid) {
 Game.processMovementKeys = function(grid) {
     if (Game.keyPressed['left']['current'] &&
         !Game.keyPressed['left']['previous']) {
-        Game.moveActiveBlock(grid, Game.actions.LEFT);
+        Game.moveActiveBlock(grid, Game.c.actions.LEFT);
     } else if (Game.keyPressed['right']['current'] &&
         !Game.keyPressed['right']['previous']) {
-        Game.moveActiveBlock(grid, Game.actions.RIGHT);
+        Game.moveActiveBlock(grid, Game.c.actions.RIGHT);
     } else if (Game.keyPressed['down']['current'] &&
         !Game.keyPressed['down']['previous']) {
-        Game.moveActiveBlock(grid, Game.actions.DOWN);
+        Game.moveActiveBlock(grid, Game.c.actions.DOWN);
     } else if (Game.keyPressed['clockwise']['current'] &&
         !Game.keyPressed['clockwise']['previous']) {
-        Game.moveActiveBlock(grid, Game.actions.CLOCKWISE);
+        Game.moveActiveBlock(grid, Game.c.actions.CLOCKWISE);
     } else if (Game.keyPressed['counterClockwise']['current'] &&
         !Game.keyPressed['counterClockwise']['previous']) {
-        Game.moveActiveBlock(grid, Game.actions.COUNTERCLOCKWISE);
+        Game.moveActiveBlock(grid, Game.c.actions.COUNTERCLOCKWISE);
     } else if (Game.keyPressed['reflect']['current'] &&
         !Game.keyPressed['reflect']['previous']) {
-        Game.moveActiveBlock(grid, Game.actions.REFLECT);
+        Game.moveActiveBlock(grid, Game.c.actions.REFLECT);
     }
 
     Game.keyPressed['left']['previous'] = Game.keyPressed['left']['current'];
@@ -343,7 +282,7 @@ Game.processDownwardTick = function(grid, timeFrame) {
     var keepGoing = true;
     if (timeFrame > (Game.lastDownTick + Game.downTickDuration)) {
         Game.lastDownTick = timeFrame;
-        var moveWorked = Game.moveActiveBlock(grid, Game.actions.DOWN);
+        var moveWorked = Game.moveActiveBlock(grid, Game.c.actions.DOWN);
 
         if (!moveWorked) {
             for (var rowNum = 0; rowNum < grid.length; rowNum++) {
@@ -354,7 +293,7 @@ Game.processDownwardTick = function(grid, timeFrame) {
 
             Game.clearMatchedRows(grid);
 
-            keepGoing = Game.addNewBlock(grid, Game.allBlocks);
+            keepGoing = Game.addNewBlock(grid, Game.c.ALL_BLOCKS);
         }
     }
     return keepGoing;
@@ -403,8 +342,8 @@ Game.drawPauseScreen = function(ctx, pauseScreenText) {
     var pauseBoxHeight = 1.05 * fontHeight * (pauseScreenText.length + 0.5);
     var pauseBoxStartRow = 0.5 * (Game.display.height - Game.statusBarHeight - pauseBoxHeight);
 
-    ctx.fillStyle = Game.colors.EMPTY;
-    ctx.strokeStyle = Game.colors.BORDER;
+    ctx.fillStyle = Game.c.colors.EMPTY;
+    ctx.strokeStyle = Game.c.colors.BORDER;
     ctx.fillRect(
         0.5 * Game.squareDim,
         pauseBoxStartRow,
@@ -418,8 +357,8 @@ Game.drawPauseScreen = function(ctx, pauseScreenText) {
         pauseBoxHeight
     );
 
-    ctx.fillStyle = Game.colors.BORDER;
-    ctx.font = fontHeight + Game.fontSuffix;
+    ctx.fillStyle = Game.c.colors.BORDER;
+    ctx.font = fontHeight + Game.c.FONT_SUFFIX;
     for (var i = 0; i < pauseScreenText.length; i++) {
         var thisText = pauseScreenText[i];
         ctx.fillText(
@@ -433,7 +372,7 @@ Game.drawPauseScreen = function(ctx, pauseScreenText) {
 
 Game.drawGrid = function(ctx, grid, squareDim) {
     ctx.lineWidth = Game.gridLineWidth;
-    ctx.strokeStyle = Game.colors.BORDER;
+    ctx.strokeStyle = Game.c.colors.BORDER;
     for (var rowNum = 0; rowNum < grid.length; rowNum++) {
         for (var colNum = 0; colNum < grid[0].length; colNum++) {
             ctx.fillStyle = grid[rowNum][colNum]['state'];
@@ -454,7 +393,7 @@ Game.drawGrid = function(ctx, grid, squareDim) {
 };
 
 Game.drawStatusBar = function(ctx) {
-    ctx.fillStyle = Game.colors.EMPTY;
+    ctx.fillStyle = Game.c.colors.EMPTY;
     ctx.fillRect(
         0,
         Game.display.height - Game.statusBarHeight,
@@ -464,8 +403,8 @@ Game.drawStatusBar = function(ctx) {
 
     var scoreText = 'Lines completed: ' + Game.finishedRowCount;
     var fontHeight = 0.5 * Game.statusBarHeight;
-    ctx.font = fontHeight + Game.fontSuffix;
-    ctx.fillStyle = Game.colors.BORDER;
+    ctx.font = fontHeight + Game.c.FONT_SUFFIX;
+    ctx.fillStyle = Game.c.colors.BORDER;
     ctx.fillText(
         scoreText,
         (0.5 * Game.display.width) - (0.5 * ctx.measureText(scoreText).width),
@@ -474,7 +413,7 @@ Game.drawStatusBar = function(ctx) {
 };
 
 Game.drawBorders = function(ctx) {
-    ctx.strokeStyle = Game.colors.BORDER;
+    ctx.strokeStyle = Game.c.colors.BORDER;
     ctx.lineWidth = Game.borderLineWidth;
     ctx.strokeRect(0, 0, Game.display.width, Game.display.height);
     ctx.lineWidth = 0.5 * Game.borderLineWidth;
@@ -496,37 +435,37 @@ Game.draw = function(ctx, grid, squareDim, pauseScreenText) {
 };
 
 Game.keyDownHandler = function(e) {
-    if (e.keyCode === Game.keyCodes.LEFT_ARROW) {
+    if (e.keyCode === Game.c.keyCodes.LEFT_ARROW) {
         Game.keyPressed['left']['current'] = true;
-    } else if (e.keyCode === Game.keyCodes.RIGHT_ARROW) {
+    } else if (e.keyCode === Game.c.keyCodes.RIGHT_ARROW) {
         Game.keyPressed['right']['current'] = true;
-    } else if (e.keyCode === Game.keyCodes.DOWN_ARROW) {
+    } else if (e.keyCode === Game.c.keyCodes.DOWN_ARROW) {
         Game.keyPressed['down']['current'] = true;
-    } else if (e.keyCode === Game.keyCodes.C) {
+    } else if (e.keyCode === Game.c.keyCodes.C) {
         Game.keyPressed['clockwise']['current'] = true;
-    } else if (e.keyCode === Game.keyCodes.Z) {
+    } else if (e.keyCode === Game.c.keyCodes.Z) {
         Game.keyPressed['counterClockwise']['current'] = true;
-    } else if (e.keyCode === Game.keyCodes.X) {
+    } else if (e.keyCode === Game.c.keyCodes.X) {
         Game.keyPressed['reflect']['current'] = true;
-    } else if (e.keyCode === Game.keyCodes.SPACE) {
+    } else if (e.keyCode === Game.c.keyCodes.SPACE) {
         Game.keyPressed['pause']['current'] = true;
     }
 };
 
 Game.keyUpHandler = function(e) {
-    if (e.keyCode === Game.keyCodes.LEFT_ARROW) {
+    if (e.keyCode === Game.c.keyCodes.LEFT_ARROW) {
         Game.keyPressed['left']['current'] = false;
-    } else if (e.keyCode === Game.keyCodes.RIGHT_ARROW) {
+    } else if (e.keyCode === Game.c.keyCodes.RIGHT_ARROW) {
         Game.keyPressed['right']['current'] = false;
-    } else if (e.keyCode === Game.keyCodes.DOWN_ARROW) {
+    } else if (e.keyCode === Game.c.keyCodes.DOWN_ARROW) {
         Game.keyPressed['down']['current'] = false;
-    } else if (e.keyCode === Game.keyCodes.C) {
+    } else if (e.keyCode === Game.c.keyCodes.C) {
         Game.keyPressed['clockwise']['current'] = false;
-    } else if (e.keyCode === Game.keyCodes.Z) {
+    } else if (e.keyCode === Game.c.keyCodes.Z) {
         Game.keyPressed['counterClockwise']['current'] = false;
-    } else if (e.keyCode === Game.keyCodes.X) {
+    } else if (e.keyCode === Game.c.keyCodes.X) {
         Game.keyPressed['reflect']['current'] = false;
-    } else if (e.keyCode === Game.keyCodes.SPACE) {
+    } else if (e.keyCode === Game.c.keyCodes.SPACE) {
         Game.keyPressed['pause']['current'] = false;
     }
 };
@@ -551,7 +490,7 @@ Game.getPauseScreenText = function() {
             ""
         ];
     }
-    return pauseHeaderText.concat(Game.controlsText);
+    return pauseHeaderText.concat(Game.c.CONTROLS_TEXT);
 };
 
 Game.main = function(timeFrame) {
@@ -564,4 +503,71 @@ Game.main = function(timeFrame) {
         Game.draw(Game.ctx, Game.grid, Game.squareDim, Game.getPauseScreenText());
     }
     window.requestAnimationFrame(Game.main);
+};
+
+Game.setConstants = function() {
+    Game.c = {};
+
+    Game.c.keyCodes = {
+        SPACE: 32,
+        LEFT_ARROW: 37,
+        RIGHT_ARROW: 39,
+        DOWN_ARROW: 40,
+        C: 67,
+        X: 88,
+        Z: 90
+    };
+
+    Game.c.CONTROLS_TEXT = [
+        "-Controls-",
+        "Pause/unpause: \<space\>",
+        "Move block: left/right/down arrow",
+        "Rotate counterclockwise: 'z'",
+        "Reflect around y-axis: 'x'",
+        "Rotate clockwise: 'c'"
+    ];
+
+    Game.c.actions = {
+        DOWN: 'down',
+        LEFT: 'left',
+        RIGHT: 'right',
+        CLOCKWISE: 'clockwise',
+        COUNTERCLOCKWISE: 'counterclockwise',
+        REFLECT: 'reflect',  // reflect around y-axis
+        PAUSE: 'pause'
+    };
+
+    Game.c.colors = {
+        BORDER: 'black',
+        EMPTY: 'white',
+        L: 'silver',
+        SQUARE: 'red',
+        STRAIGHT: 'fuchsia',
+        T: 'lime',
+        Z: 'aqua'
+    };
+
+    Game.c.ALL_BLOCKS = [
+        [
+            [Game.c.colors.L, Game.c.colors.L, Game.c.colors.L],
+            [Game.c.colors.L, Game.c.colors.EMPTY, Game.c.colors.EMPTY]
+        ],
+        [
+            [Game.c.colors.SQUARE, Game.c.colors.SQUARE],
+            [Game.c.colors.SQUARE, Game.c.colors.SQUARE]
+        ],
+        [
+            [Game.c.colors.STRAIGHT, Game.c.colors.STRAIGHT, Game.c.colors.STRAIGHT, Game.c.colors.STRAIGHT]
+        ],
+        [
+            [Game.c.colors.T, Game.c.colors.T, Game.c.colors.T],
+            [Game.c.colors.EMPTY, Game.c.colors.T, Game.c.colors.EMPTY]
+        ],
+        [
+            [Game.c.colors.Z, Game.c.colors.Z, Game.c.colors.EMPTY],
+            [Game.c.colors.EMPTY, Game.c.colors.Z, Game.c.colors.Z]
+        ]
+    ];
+
+    Game.c.FONT_SUFFIX = 'px serif';
 };
