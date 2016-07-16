@@ -32,7 +32,15 @@ Game.run = function (canvasId, squareDim, statusBarHeight, borderLineWidth, grid
 
     Game.prepareNewGame();
 
-    Game.draw(Game.display.getContext('2d'), Game.grid, Game.ds.squareDim, Game.getPauseScreenText());
+    Game.draw(
+        Game.display.getContext('2d'),
+        Game.grid,
+        Game.ds,
+        Game.c.colors,
+        Game.c.FONT_SUFFIX,
+        Game.getPauseScreenText(),
+        Game.finishedRowCount
+    );
 
     window.requestAnimationFrame(Game.main);
 };
@@ -296,104 +304,104 @@ Game.update = function(grid, timeFrame) {
     return gameOver;
 };
 
-Game.drawPauseScreen = function(ctx, pauseScreenText) {
+Game.drawPauseScreen = function(ctx, ds, colors, fontSuffix, pauseScreenText) {
     ctx.fillStyle = "rgba(0, 0, 0, 0.0)";
-    ctx.fillRect(0, 0, Game.ds.displayWidth, Game.ds.displayHeight - Game.ds.statusBarHeight);
+    ctx.fillRect(0, 0, ds.displayWidth, ds.displayHeight - ds.statusBarHeight);
     ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
-    ctx.fillRect(0, 0, Game.ds.displayWidth, Game.ds.displayHeight - Game.ds.statusBarHeight);
+    ctx.fillRect(0, 0, ds.displayWidth, ds.displayHeight - ds.statusBarHeight);
 
-    var fontHeight = 0.5 * Game.ds.statusBarHeight;
+    var fontHeight = 0.5 * ds.statusBarHeight;
     var pauseBoxHeight = 1.05 * fontHeight * (pauseScreenText.length + 0.5);
-    var pauseBoxStartRow = 0.5 * (Game.ds.displayHeight - Game.ds.statusBarHeight - pauseBoxHeight);
+    var pauseBoxStartRow = 0.5 * (ds.displayHeight - ds.statusBarHeight - pauseBoxHeight);
 
-    ctx.fillStyle = Game.c.colors.EMPTY;
-    ctx.strokeStyle = Game.c.colors.BORDER;
+    ctx.fillStyle = colors.EMPTY;
+    ctx.strokeStyle = colors.BORDER;
     ctx.fillRect(
-        0.5 * Game.ds.squareDim,
+        0.5 * ds.squareDim,
         pauseBoxStartRow,
-        Game.ds.displayWidth - Game.ds.squareDim,
+        ds.displayWidth - ds.squareDim,
         pauseBoxHeight
     );
     ctx.strokeRect(
-        0.5 * Game.ds.squareDim,
+        0.5 * ds.squareDim,
         pauseBoxStartRow,
-        Game.ds.displayWidth - Game.ds.squareDim,
+        ds.displayWidth - ds.squareDim,
         pauseBoxHeight
     );
 
-    ctx.fillStyle = Game.c.colors.BORDER;
-    ctx.font = fontHeight + Game.c.FONT_SUFFIX;
+    ctx.fillStyle = colors.BORDER;
+    ctx.font = fontHeight + fontSuffix;
     for (var i = 0; i < pauseScreenText.length; i++) {
         var thisText = pauseScreenText[i];
         ctx.fillText(
             thisText,
-            Game.ds.squareDim,
+            ds.squareDim,
             pauseBoxStartRow + 1.055 * fontHeight * (i+1),
-            Game.ds.displayWidth - 2 * Game.ds.squareDim
+            ds.displayWidth - 2 * ds.squareDim
         );
     }
 };
 
-Game.drawGrid = function(ctx, grid, squareDim) {
-    ctx.lineWidth = Game.ds.gridLineWidth;
-    ctx.strokeStyle = Game.c.colors.BORDER;
+Game.drawGrid = function(ctx, grid, ds, colors) {
+    ctx.lineWidth = ds.gridLineWidth;
+    ctx.strokeStyle = colors.BORDER;
     for (var rowNum = 0; rowNum < grid.length; rowNum++) {
         for (var colNum = 0; colNum < grid[0].length; colNum++) {
             ctx.fillStyle = grid[rowNum][colNum]['state'];
             ctx.fillRect(
-                colNum * squareDim,
-                rowNum * squareDim,
-                squareDim,
-                squareDim
+                colNum * ds.squareDim,
+                rowNum * ds.squareDim,
+                ds.squareDim,
+                ds.squareDim
             );
             ctx.strokeRect(
-                colNum * squareDim,
-                rowNum * squareDim,
-                squareDim,
-                squareDim
+                colNum * ds.squareDim,
+                rowNum * ds.squareDim,
+                ds.squareDim,
+                ds.squareDim
             );
         }
     }
 };
 
-Game.drawStatusBar = function(ctx) {
-    ctx.fillStyle = Game.c.colors.EMPTY;
+Game.drawStatusBar = function(ctx, ds, colors, fontSuffix, finishedRowCount) {
+    ctx.fillStyle = colors.EMPTY;
     ctx.fillRect(
         0,
-        Game.ds.displayHeight - Game.ds.statusBarHeight,
-        Game.ds.displayWidth,
-        Game.ds.statusBarHeight
+        ds.displayHeight - ds.statusBarHeight,
+        ds.displayWidth,
+        ds.statusBarHeight
     );
 
-    var scoreText = 'Lines completed: ' + Game.finishedRowCount;
-    var fontHeight = 0.5 * Game.ds.statusBarHeight;
-    ctx.font = fontHeight + Game.c.FONT_SUFFIX;
-    ctx.fillStyle = Game.c.colors.BORDER;
+    var scoreText = 'Lines completed: ' + finishedRowCount;
+    var fontHeight = 0.5 * ds.statusBarHeight;
+    ctx.font = fontHeight + fontSuffix;
+    ctx.fillStyle = colors.BORDER;
     ctx.fillText(
         scoreText,
-        (0.5 * Game.ds.displayWidth) - (0.5 * ctx.measureText(scoreText).width),
-        Game.ds.displayHeight - (0.5 * Game.ds.statusBarHeight) + (0.35 * fontHeight)
+        (0.5 * ds.displayWidth) - (0.5 * ctx.measureText(scoreText).width),
+        ds.displayHeight - (0.5 * ds.statusBarHeight) + (0.35 * fontHeight)
     );
 };
 
-Game.drawBorders = function(ctx) {
-    ctx.strokeStyle = Game.c.colors.BORDER;
-    ctx.lineWidth = Game.ds.borderLineWidth;
-    ctx.strokeRect(0, 0, Game.ds.displayWidth, Game.ds.displayHeight);
-    ctx.lineWidth = 0.5 * Game.ds.borderLineWidth;
+Game.drawBorders = function(ctx, ds, colors) {
+    ctx.strokeStyle = colors.BORDER;
+    ctx.lineWidth = ds.borderLineWidth;
+    ctx.strokeRect(0, 0, ds.displayWidth, ds.displayHeight);
+    ctx.lineWidth = 0.5 * ds.borderLineWidth;
     ctx.beginPath();
-    ctx.moveTo(0, Game.ds.displayHeight - Game.ds.statusBarHeight);
-    ctx.lineTo(Game.ds.displayWidth, Game.ds.displayHeight - Game.ds.statusBarHeight);
+    ctx.moveTo(0, ds.displayHeight - ds.statusBarHeight);
+    ctx.lineTo(ds.displayWidth, ds.displayHeight - ds.statusBarHeight);
     ctx.closePath();
     ctx.stroke();
 };
 
-Game.draw = function(ctx, grid, squareDim, pauseScreenText) {
-    Game.drawGrid(ctx, grid, squareDim);
-    Game.drawStatusBar(ctx);
-    Game.drawBorders(ctx);
+Game.draw = function(ctx, grid, ds, colors, fontSuffix, pauseScreenText, finishedRowCount) {
+    Game.drawGrid(ctx, grid, ds, colors);
+    Game.drawStatusBar(ctx, ds, colors, fontSuffix, finishedRowCount);
+    Game.drawBorders(ctx, ds, colors);
     if (Game.isPaused) {
-        Game.drawPauseScreen(ctx, pauseScreenText);
+        Game.drawPauseScreen(ctx, ds, colors, fontSuffix, pauseScreenText);
         Game.shouldRedraw = false;
     }
 };
@@ -436,7 +444,15 @@ Game.main = function(timeFrame) {
         Game.shouldResetLastDownTick = true;
     }
     if (Game.shouldRedraw) {
-        Game.draw(Game.display.getContext('2d'), Game.grid, Game.ds.squareDim, Game.getPauseScreenText());
+        Game.draw(
+            Game.display.getContext('2d'),
+            Game.grid,
+            Game.ds,
+            Game.c.colors,
+            Game.c.FONT_SUFFIX,
+            Game.getPauseScreenText(),
+            Game.finishedRowCount
+        );
     }
     window.requestAnimationFrame(Game.main);
 };
