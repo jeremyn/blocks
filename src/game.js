@@ -4,8 +4,7 @@
 'use strict';
 var Game = {};
 
-Game.initialize = function(borderColor, squareDim, canvasId) {
-    Game.borderColor = borderColor;
+Game.initialize = function(squareDim, canvasId) {
     Game.squareDim = squareDim;
     Game.borderLineWidth = 6;
     Game.gridLineWidth = 1;
@@ -52,6 +51,7 @@ Game.initialize = function(borderColor, squareDim, canvasId) {
     };
 
     Game.colors = {
+        BORDER: 'black',
         EMPTY: 'white',
         L: 'silver',
         SQUARE: 'red',
@@ -402,7 +402,7 @@ Game.drawPauseScreen = function(ctx, pauseScreenText) {
     var pauseBoxStartRow = 0.5 * (Game.display.height - Game.statusBarHeight - pauseBoxHeight);
 
     ctx.fillStyle = Game.colors.EMPTY;
-    ctx.strokeStyle = Game.borderColor;
+    ctx.strokeStyle = Game.colors.BORDER;
     ctx.fillRect(
         0.5 * Game.squareDim,
         pauseBoxStartRow,
@@ -416,7 +416,7 @@ Game.drawPauseScreen = function(ctx, pauseScreenText) {
         pauseBoxHeight
     );
 
-    ctx.fillStyle = Game.borderColor;
+    ctx.fillStyle = Game.colors.BORDER;
     ctx.font = fontHeight + Game.fontSuffix;
     for (var i = 0; i < pauseScreenText.length; i++) {
         var thisText = pauseScreenText[i];
@@ -431,7 +431,7 @@ Game.drawPauseScreen = function(ctx, pauseScreenText) {
 
 Game.drawGrid = function(ctx, grid, squareDim) {
     ctx.lineWidth = Game.gridLineWidth;
-    ctx.strokeStyle = Game.borderColor;
+    ctx.strokeStyle = Game.colors.BORDER;
     for (var rowNum = 0; rowNum < grid.length; rowNum++) {
         for (var colNum = 0; colNum < grid[0].length; colNum++) {
             ctx.fillStyle = grid[rowNum][colNum]['state'];
@@ -463,7 +463,7 @@ Game.drawStatusBar = function(ctx) {
     var scoreText = 'Lines completed: ' + Game.finishedRowCount;
     var fontHeight = 0.5 * Game.statusBarHeight;
     ctx.font = fontHeight + Game.fontSuffix;
-    ctx.fillStyle = Game.borderColor;
+    ctx.fillStyle = Game.colors.BORDER;
     ctx.fillText(
         scoreText,
         (0.5 * Game.display.width) - (0.5 * ctx.measureText(scoreText).width),
@@ -472,7 +472,7 @@ Game.drawStatusBar = function(ctx) {
 };
 
 Game.drawBorders = function(ctx) {
-    ctx.strokeStyle = Game.borderColor;
+    ctx.strokeStyle = Game.colors.BORDER;
     ctx.lineWidth = Game.borderLineWidth;
     ctx.strokeRect(0, 0, Game.display.width, Game.display.height);
     ctx.lineWidth = 0.5 * Game.borderLineWidth;
