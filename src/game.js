@@ -123,16 +123,17 @@ Game.getActiveBlockCoords = function(grid) {
     return activeBlockCoords;
 };
 
-Game.updateActiveBlockPosition = function(grid, oldActiveCoords, newActiveCoords) {
+Game.updateActiveBlockPosition = function(inputGrid, oldActiveCoords, newActiveCoords) {
+    var outputGrid = Game.getGridCopy(inputGrid);
     var moveIsAllowed = true;
     for (var i = 0; i < newActiveCoords.length; i++) {
         var newCoord = newActiveCoords[i];
         moveIsAllowed = (
-            (0 <= newCoord[0]) && (newCoord[0] < grid.length) &&
-            (0 <= newCoord[1]) && (newCoord[1] < grid[0].length) &&
+            (0 <= newCoord[0]) && (newCoord[0] < outputGrid.length) &&
+            (0 <= newCoord[1]) && (newCoord[1] < outputGrid[0].length) &&
             (
-                (grid[newCoord[0]][newCoord[1]]['isActive'] === true) ||
-                (grid[newCoord[0]][newCoord[1]]['state'] === Game.c.colors.EMPTY)
+                (outputGrid[newCoord[0]][newCoord[1]]['isActive'] === true) ||
+                (outputGrid[newCoord[0]][newCoord[1]]['state'] === Game.c.colors.EMPTY)
             )
         );
         if (!moveIsAllowed) {
@@ -141,17 +142,20 @@ Game.updateActiveBlockPosition = function(grid, oldActiveCoords, newActiveCoords
     }
 
     if (moveIsAllowed) {
-        var state = grid[oldActiveCoords[0][0]][oldActiveCoords[0][1]]['state'];
+        var state = outputGrid[oldActiveCoords[0][0]][oldActiveCoords[0][1]]['state'];
         for (var i = 0; i < oldActiveCoords.length; i++) {
-            grid[oldActiveCoords[i][0]][oldActiveCoords[i][1]]['state'] = Game.c.colors.EMPTY;
-            grid[oldActiveCoords[i][0]][oldActiveCoords[i][1]]['isActive'] = false;
+            outputGrid[oldActiveCoords[i][0]][oldActiveCoords[i][1]]['state'] = Game.c.colors.EMPTY;
+            outputGrid[oldActiveCoords[i][0]][oldActiveCoords[i][1]]['isActive'] = false;
         }
         for (var i = 0; i < newActiveCoords.length; i++) {
-            grid[newActiveCoords[i][0]][newActiveCoords[i][1]]['state'] = state;
-            grid[newActiveCoords[i][0]][newActiveCoords[i][1]]['isActive'] = true;
+            outputGrid[newActiveCoords[i][0]][newActiveCoords[i][1]]['state'] = state;
+            outputGrid[newActiveCoords[i][0]][newActiveCoords[i][1]]['isActive'] = true;
         }
     }
-    return moveIsAllowed;
+    return {
+        moveIsAllowed: moveIsAllowed,
+        newGrid: outputGrid
+    };
 };
 
 Game.getUpdatedCoords = function(oldCoords, action) {
@@ -241,13 +245,14 @@ Game.clearMatchedRows = function(inputGrid, finishedRowCount, emptyState) {
     }
 };
 
-Game.processActionKeys = function(grid) {
+Game.processActionKeys = function(inputGrid) {
+    var outputGrid = Game.getGridCopy(inputGrid);
     for (var i = 0; i < Game.c.ACTION_MAP.length; i++) {
         var keyCode = Game.c.ACTION_MAP[i][0];
         var action = Game.c.ACTION_MAP[i][1];
         if (Game.keyPressed.get(keyCode)['current'] &&
             !Game.keyPressed.get(keyCode)['previous']) {
-            Game.moveActiveBlock(grid, action);
+            outputGrid = Game.moveActiveBlock(outputGrid, action).newGrid;
             break;
         }
     }
@@ -255,31 +260,39 @@ Game.processActionKeys = function(grid) {
     for (var i = 0; i < Game.c.ACTION_MAP.length; i++) {
         Game.keyPressed.get(Game.c.ACTION_MAP[i][0])['previous'] = Game.keyPressed.get(Game.c.ACTION_MAP[i][0])['current'];
     }
+
+    return outputGrid;
 };
 
-Game.processDownwardTick = function(grid, timeFrame) {
+Game.processDownwardTick = function(inputGrid, timeFrame) {
+    var outputGrid = Game.getGridCopy(inputGrid);
     var keepGoing = true;
     if (timeFrame > (Game.lastDownTick + Game.c.DOWN_TICK_DURATION)) {
         Game.lastDownTick = timeFrame;
-        var moveWorked = Game.moveActiveBlock(grid, Game.c.actions.DOWN);
+        var moveActiveBlockResults = Game.moveActiveBlock(outputGrid, Game.c.actions.DOWN);
+        var moveWorked = moveActiveBlockResults.moveIsAllowed;
+        outputGrid = moveActiveBlockResults.newGrid;
 
         if (!moveWorked) {
-            for (var rowNum = 0; rowNum < grid.length; rowNum++) {
-                for (var colNum = 0; colNum < grid[0].length; colNum++) {
-                    grid[rowNum][colNum]['isActive'] = false;
+            for (var rowNum = 0; rowNum < outputGrid.length; rowNum++) {
+                for (var colNum = 0; colNum < outputGrid[0].length; colNum++) {
+                    outputGrid[rowNum][colNum]['isActive'] = false;
                 }
             }
 
-            var clearMatchedRowsResults = Game.clearMatchedRows(grid, Game.finishedRowCount, Game.c.colors.EMPTY);
-            grid = clearMatchedRowsResults.newGrid;
+            var clearMatchedRowsResults = Game.clearMatchedRows(outputGrid, Game.finishedRowCount, Game.c.colors.EMPTY);
+            outputGrid = clearMatchedRowsResults.newGrid;
             Game.finishedRowCount = clearMatchedRowsResults.finishedRowCount;
 
-            var addNewBlockResults = Game.addNewBlock(grid, Game.c.ALL_BLOCKS, Game.c.colors.EMPTY);
-            Game.grid = addNewBlockResults.newGrid;
+            var addNewBlockResults = Game.addNewBlock(outputGrid, Game.c.ALL_BLOCKS, Game.c.colors.EMPTY);
+            outputGrid = addNewBlockResults.newGrid;
             keepGoing = addNewBlockResults.addBlockSuccessful;
         }
     }
-    return keepGoing;
+    return {
+        isGameOver: !keepGoing,
+        newGrid: outputGrid
+    };
 };
 
 Game.processPauseKey = function(timeFrame) {
@@ -311,8 +324,10 @@ Game.update = function(grid, timeFrame) {
             Game.grid = newGameVars.grid;
             isGameOver = false;
         } else {
-            Game.processActionKeys(grid);
-            isGameOver = !Game.processDownwardTick(grid, timeFrame);
+            grid = Game.processActionKeys(grid);
+            var processDownwardTickResults = Game.processDownwardTick(grid, timeFrame);
+            isGameOver = processDownwardTickResults.isGameOver;
+            Game.grid = processDownwardTickResults.newGrid;
         }
     }
     return isGameOver;
