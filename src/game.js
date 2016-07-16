@@ -60,34 +60,38 @@ Game.prepareNewGame = function() {
         Game.grid = Game.getEmptyGrid(numRows, numCols, Game.c.colors.EMPTY);
     }
 
-    Game.addNewBlock(Game.grid, Game.c.ALL_BLOCKS);
+    Game.grid = Game.addNewBlock(Game.grid, Game.c.ALL_BLOCKS).newGrid;
 };
 
-Game.addNewBlock = function(grid, allBlocks) {
-    var funcStatus = true;
+Game.addNewBlock = function(inputGrid, allBlocks) {
+    var addBlockSuccessful = true;
+    var outputGrid = Game.getGridCopy(inputGrid);
 
     var newBlock = allBlocks[Math.floor(Math.random() * allBlocks.length)];
-    var startColNum = (grid[0].length / 2) - Math.floor((newBlock[0].length / 2));
+    var startColNum = (outputGrid[0].length / 2) - Math.floor((newBlock[0].length / 2));
     for (var rowNum = 0; rowNum < newBlock.length; rowNum++) {
         for (var colNum = 0; colNum < newBlock[0].length; colNum++) {
-            var gridCell = grid[rowNum][startColNum + colNum];
+            var gridCell = outputGrid[rowNum][startColNum + colNum];
             var blockCellState = newBlock[rowNum][colNum];
             if (blockCellState !== Game.c.colors.EMPTY) {
                 if (gridCell['state'] === Game.c.colors.EMPTY) {
                     gridCell['state'] = blockCellState;
                     gridCell['isActive'] = true;
                 } else {
-                    funcStatus = false;
+                    addBlockSuccessful = false;
                     break;
                 }
             }
         }
-        if (!funcStatus) {
+        if (!addBlockSuccessful) {
             break;
         }
     }
 
-    return funcStatus;
+    return {
+        addBlockSuccessful: addBlockSuccessful,
+        newGrid: outputGrid
+    };
 };
 
 Game.getActiveBlockCoords = function(grid) {
@@ -247,7 +251,9 @@ Game.processDownwardTick = function(grid, timeFrame) {
 
             Game.clearMatchedRows(grid);
 
-            keepGoing = Game.addNewBlock(grid, Game.c.ALL_BLOCKS);
+            var results = Game.addNewBlock(grid, Game.c.ALL_BLOCKS);
+            Game.grid = results.newGrid;
+            keepGoing = results.addBlockSuccessful;
         }
     }
     return keepGoing;
@@ -523,4 +529,19 @@ Game.keyPressed.get = function(keyCode) {
         };
     }
     return this.values[keyCode];
+};
+
+Game.getGridCopy = function(inputGrid) {
+    var outputGrid = [];
+    for (var rowNum = 0; rowNum < inputGrid.length; rowNum++) {
+        var outputRow = [];
+        for (var colNum = 0; colNum < inputGrid[rowNum].length; colNum++) {
+            outputRow.push({
+                state: inputGrid[rowNum][colNum]['state'],
+                isActive: inputGrid[rowNum][colNum]['isActive']
+            });
+        }
+        outputGrid.push(outputRow);
+    }
+    return outputGrid;
 };
