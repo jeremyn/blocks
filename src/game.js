@@ -212,11 +212,12 @@ Game.moveActiveBlock = function(grid, action) {
     return Game.updateActiveBlockPosition(grid, oldActiveCoords, newActiveCoords);
 };
 
-Game.clearMatchedRows = function(grid) {
+Game.clearMatchedRows = function(inputGrid, finishedRowCount, emptyState) {
+    var outputGrid = Game.getGridCopy(inputGrid);
     var finishedRowNums = [];
-    for (var rowNum = 0; rowNum < grid.length; rowNum++) {
-        var emptyCols = grid[rowNum].filter(function(col) {
-            return col['state'] === Game.c.colors.EMPTY;
+    for (var rowNum = 0; rowNum < outputGrid.length; rowNum++) {
+        var emptyCols = outputGrid[rowNum].filter(function(col) {
+            return col['state'] === emptyState;
         });
         if (emptyCols.length === 0) {
             finishedRowNums.push(rowNum);
@@ -224,16 +225,19 @@ Game.clearMatchedRows = function(grid) {
     }
     for (var i = 0; i < finishedRowNums.length; i++) {
         var finishedRowNum = finishedRowNums[i];
-        for (var colNum = 0; colNum < grid[0].length; colNum++) {
-            grid[finishedRowNum][colNum]['state'] = Game.c.colors.EMPTY;
+        for (var colNum = 0; colNum < outputGrid[0].length; colNum++) {
+            outputGrid[finishedRowNum][colNum]['state'] = emptyState;
         }
         for (rowNum = finishedRowNum-1; rowNum >= 0; rowNum--) {
-            for (colNum = 0; colNum < grid[0].length; colNum++) {
-                grid[rowNum+1][colNum]['state'] = grid[rowNum][colNum]['state'];
-                grid[rowNum][colNum]['state'] = Game.c.colors.EMPTY;
+            for (colNum = 0; colNum < outputGrid[0].length; colNum++) {
+                outputGrid[rowNum+1][colNum]['state'] = outputGrid[rowNum][colNum]['state'];
+                outputGrid[rowNum][colNum]['state'] = emptyState;
             }
         }
-        Game.finishedRowCount++;
+    }
+    return {
+        finishedRowCount: finishedRowCount + finishedRowNums.length,
+        newGrid: outputGrid
     }
 };
 
@@ -266,11 +270,13 @@ Game.processDownwardTick = function(grid, timeFrame) {
                 }
             }
 
-            Game.clearMatchedRows(grid);
+            var clearMatchedRowsResults = Game.clearMatchedRows(grid, Game.finishedRowCount, Game.c.colors.EMPTY);
+            grid = clearMatchedRowsResults.newGrid;
+            Game.finishedRowCount = clearMatchedRowsResults.finishedRowCount;
 
-            var results = Game.addNewBlock(grid, Game.c.ALL_BLOCKS, Game.c.colors.EMPTY);
-            Game.grid = results.newGrid;
-            keepGoing = results.addBlockSuccessful;
+            var addNewBlockResults = Game.addNewBlock(grid, Game.c.ALL_BLOCKS, Game.c.colors.EMPTY);
+            Game.grid = addNewBlockResults.newGrid;
+            keepGoing = addNewBlockResults.addBlockSuccessful;
         }
     }
     return keepGoing;
