@@ -29,7 +29,10 @@ Game.run = function (canvasId, squareDim, statusBarHeight, borderLineWidth, grid
         shouldResetLastDownTick: true
     };
 
-    Game.prepareNewGame();
+    var newGameVars = Game.getNewGameVars(Game.ds, Game.c.ALL_BLOCKS, Game.c.colors.EMPTY);
+    Game.keyPressed = newGameVars.keyPressed;
+    Game.finishedRowCount = newGameVars.finishedRowCount;
+    Game.grid = newGameVars.grid;
 
     Game.draw(
         Game.display.getContext('2d'),
@@ -44,9 +47,9 @@ Game.run = function (canvasId, squareDim, statusBarHeight, borderLineWidth, grid
     window.requestAnimationFrame(Game.main);
 };
 
-Game.getEmptyGrid = function(initialState) {
-    var numRows = (Game.ds.displayHeight - Game.ds.statusBarHeight) / Game.ds.squareDim;
-    var numCols = Game.ds.displayWidth / Game.ds.squareDim;
+Game.getEmptyGrid = function(ds, initialState) {
+    var numRows = (ds.displayHeight - ds.statusBarHeight) / ds.squareDim;
+    var numCols = ds.displayWidth / ds.squareDim;
     if ((numRows % 2 !== 0) || (numCols % 2 !== 0)) {
         throw new Error('bad grid dimensions');
     }
@@ -65,14 +68,16 @@ Game.getEmptyGrid = function(initialState) {
     return grid;
 };
 
-Game.prepareNewGame = function() {
-    Game.keyPressed = new KeypressStatus();
-    Game.finishedRowCount = 0;
-    Game.grid = Game.addNewBlock(
-        Game.getEmptyGrid(Game.c.colors.EMPTY),
-        Game.c.ALL_BLOCKS,
-        Game.c.colors.EMPTY
-    ).newGrid;
+Game.getNewGameVars = function(ds, allBlocks, emptyState) {
+    return {
+        keyPressed: new KeypressStatus(),
+        finishedRowCount: 0,
+        grid: Game.addNewBlock(
+            Game.getEmptyGrid(ds, emptyState),
+            allBlocks,
+            emptyState
+        ).newGrid
+    };
 };
 
 Game.addNewBlock = function(inputGrid, allBlocks, emptyState) {
@@ -294,7 +299,10 @@ Game.update = function(grid, timeFrame) {
     Game.processPauseKey(timeFrame);
     if (!Game.f.isPaused) {
         if (isGameOver) {
-            Game.prepareNewGame();
+            var newGameVars = Game.getNewGameVars(Game.ds, Game.c.ALL_BLOCKS, Game.c.colors.EMPTY);
+            Game.keyPressed = newGameVars.keyPressed;
+            Game.finishedRowCount = newGameVars.finishedRowCount;
+            Game.grid = newGameVars.grid;
             isGameOver = false;
         } else {
             Game.processActionKeys(grid);
