@@ -44,7 +44,13 @@ Game.run = function (canvasId, squareDim, statusBarHeight, borderLineWidth, grid
     window.requestAnimationFrame(Game.main);
 };
 
-Game.getEmptyGrid = function(numRows, numCols, initialState) {
+Game.getEmptyGrid = function(initialState) {
+    var numRows = (Game.ds.displayHeight - Game.ds.statusBarHeight) / Game.ds.squareDim;
+    var numCols = Game.ds.displayWidth / Game.ds.squareDim;
+    if ((numRows % 2 !== 0) || (numCols % 2 !== 0)) {
+        throw new Error('bad grid dimensions');
+    }
+
     var grid = [];
     for (var rowNum = 0; rowNum < numRows; rowNum++) {
         var row = [];
@@ -62,16 +68,11 @@ Game.getEmptyGrid = function(numRows, numCols, initialState) {
 Game.prepareNewGame = function() {
     Game.keyPressed = new KeypressStatus();
     Game.finishedRowCount = 0;
-
-    var numRows = (Game.ds.displayHeight - Game.ds.statusBarHeight) / Game.ds.squareDim;
-    var numCols = Game.ds.displayWidth / Game.ds.squareDim;
-    if ((numRows % 2 !== 0) || (numCols % 2 !== 0)) {
-        throw new Error('bad grid dimensions');
-    } else {
-        Game.grid = Game.getEmptyGrid(numRows, numCols, Game.c.colors.EMPTY);
-    }
-
-    Game.grid = Game.addNewBlock(Game.grid, Game.c.ALL_BLOCKS, Game.c.colors.EMPTY).newGrid;
+    Game.grid = Game.addNewBlock(
+        Game.getEmptyGrid(Game.c.colors.EMPTY),
+        Game.c.ALL_BLOCKS,
+        Game.c.colors.EMPTY
+    ).newGrid;
 };
 
 Game.addNewBlock = function(inputGrid, allBlocks, emptyState) {
