@@ -5,14 +5,12 @@
 var Game = {};
 
 Game.run = function (canvasId, squareDim, statusBarHeight, borderLineWidth, gridLineWidth) {
-    Game.c = Game.getConstants();
-
     document.addEventListener('keydown', Game.keyDownHandler, false);
     document.addEventListener('keyup', Game.keyUpHandler, false);
 
     Game.display = document.getElementById(canvasId);
 
-    Game.ds = {
+    var ds = {
         borderLineWidth: borderLineWidth,
         displayHeight: Game.display.height,
         displayWidth: Game.display.width,
@@ -20,6 +18,8 @@ Game.run = function (canvasId, squareDim, statusBarHeight, borderLineWidth, grid
         squareDim: squareDim,
         statusBarHeight: statusBarHeight
     };
+
+    Game.c = Game.getConstants(ds);
 
     Game.f = {
         isGameOver: false,
@@ -29,7 +29,7 @@ Game.run = function (canvasId, squareDim, statusBarHeight, borderLineWidth, grid
         shouldResetLastDownTick: true
     };
 
-    var newGameVars = Game.getNewGameVars(Game.ds, Game.c.ALL_BLOCKS, Game.c.colors.EMPTY);
+    var newGameVars = Game.getNewGameVars(Game.c.ds, Game.c.ALL_BLOCKS, Game.c.colors.EMPTY);
     Game.finishedRowCount = newGameVars.finishedRowCount;
     Game.grid = newGameVars.grid;
 
@@ -40,7 +40,7 @@ Game.run = function (canvasId, squareDim, statusBarHeight, borderLineWidth, grid
     Game.f = Game.draw(
         Game.display.getContext('2d'),
         Game.grid,
-        Game.ds,
+        Game.c.ds,
         Game.c.colors,
         Game.c.FONT_SUFFIX,
         Game.getPauseScreenText(Game.f, Game.c.CONTROLS_TEXT),
@@ -490,7 +490,7 @@ Game.getPauseScreenText = function(f, controlsText) {
 };
 
 Game.main = function(timeFrame) {
-    var updateResults = Game.update(Game.grid, timeFrame, Game.f, Game.c.keyCodes, Game.lastDownTick, Game.ds, Game.c.ALL_BLOCKS, Game.c.colors.EMPTY, Game.finishedRowCount, Game.c.ACTION_MAP, Game.c.actions, Game.c.DOWN_TICK_DURATION, Game.keyPressed);
+    var updateResults = Game.update(Game.grid, timeFrame, Game.f, Game.c.keyCodes, Game.lastDownTick, Game.c.ds, Game.c.ALL_BLOCKS, Game.c.colors.EMPTY, Game.finishedRowCount, Game.c.ACTION_MAP, Game.c.actions, Game.c.DOWN_TICK_DURATION, Game.keyPressed);
     Game.f = updateResults.newF;
     Game.finishedRowCount = updateResults.newFinishedRowCount;
     Game.grid = updateResults.newGrid;
@@ -504,7 +504,7 @@ Game.main = function(timeFrame) {
         Game.f = Game.draw(
             Game.display.getContext('2d'),
             Game.grid,
-            Game.ds,
+            Game.c.ds,
             Game.c.colors,
             Game.c.FONT_SUFFIX,
             Game.getPauseScreenText(Game.f, Game.c.CONTROLS_TEXT),
@@ -516,8 +516,10 @@ Game.main = function(timeFrame) {
     window.requestAnimationFrame(Game.main);
 };
 
-Game.getConstants = function() {
+Game.getConstants = function(ds) {
     var c = {};
+
+    c.ds = ds;
 
     c.keyCodes = {
         SPACE: 32,
