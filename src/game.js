@@ -123,7 +123,7 @@ Game.getActiveBlockCoords = function(grid) {
     return activeBlockCoords;
 };
 
-Game.updateActiveBlockPosition = function(inputGrid, oldActiveCoords, newActiveCoords) {
+Game.updateActiveBlockPosition = function(inputGrid, oldActiveCoords, newActiveCoords, emptyState) {
     var outputGrid = Game.getGridCopy(inputGrid);
     var moveIsAllowed = true;
     for (var i = 0; i < newActiveCoords.length; i++) {
@@ -133,7 +133,7 @@ Game.updateActiveBlockPosition = function(inputGrid, oldActiveCoords, newActiveC
             (0 <= newCoord[1]) && (newCoord[1] < outputGrid[0].length) &&
             (
                 (outputGrid[newCoord[0]][newCoord[1]]['isActive'] === true) ||
-                (outputGrid[newCoord[0]][newCoord[1]]['state'] === Game.c.colors.EMPTY)
+                (outputGrid[newCoord[0]][newCoord[1]]['state'] === emptyState)
             )
         );
         if (!moveIsAllowed) {
@@ -144,7 +144,7 @@ Game.updateActiveBlockPosition = function(inputGrid, oldActiveCoords, newActiveC
     if (moveIsAllowed) {
         var state = outputGrid[oldActiveCoords[0][0]][oldActiveCoords[0][1]]['state'];
         for (var i = 0; i < oldActiveCoords.length; i++) {
-            outputGrid[oldActiveCoords[i][0]][oldActiveCoords[i][1]]['state'] = Game.c.colors.EMPTY;
+            outputGrid[oldActiveCoords[i][0]][oldActiveCoords[i][1]]['state'] = emptyState;
             outputGrid[oldActiveCoords[i][0]][oldActiveCoords[i][1]]['isActive'] = false;
         }
         for (var i = 0; i < newActiveCoords.length; i++) {
@@ -210,10 +210,10 @@ Game.getUpdatedCoords = function(oldCoords, action, allActions) {
     return newCoords;
 };
 
-Game.moveActiveBlock = function(grid, action, allActions) {
+Game.moveActiveBlock = function(grid, action, allActions, emptyState) {
     var oldActiveCoords = Game.getActiveBlockCoords(grid);
     var newActiveCoords = Game.getUpdatedCoords(oldActiveCoords, action, allActions);
-    return Game.updateActiveBlockPosition(grid, oldActiveCoords, newActiveCoords);
+    return Game.updateActiveBlockPosition(grid, oldActiveCoords, newActiveCoords, emptyState);
 };
 
 Game.clearMatchedRows = function(inputGrid, finishedRowCount, emptyState) {
@@ -252,7 +252,7 @@ Game.processActionKeys = function(inputGrid) {
         var action = Game.c.ACTION_MAP[i][1];
         if (Game.keyPressed.get(keyCode)['current'] &&
             !Game.keyPressed.get(keyCode)['previous']) {
-            outputGrid = Game.moveActiveBlock(outputGrid, action, Game.c.actions).newGrid;
+            outputGrid = Game.moveActiveBlock(outputGrid, action, Game.c.actions, Game.c.colors.EMPTY).newGrid;
             break;
         }
     }
@@ -269,7 +269,7 @@ Game.processDownTick = function(inputGrid, timeFrame) {
     var keepGoing = true;
     if (timeFrame > (Game.lastDownTick + Game.c.DOWN_TICK_DURATION)) {
         Game.lastDownTick = timeFrame;
-        var moveActiveBlockResults = Game.moveActiveBlock(outputGrid, Game.c.actions.DOWN, Game.c.actions);
+        var moveActiveBlockResults = Game.moveActiveBlock(outputGrid, Game.c.actions.DOWN, Game.c.actions, Game.c.colors.EMPTY);
         var moveWorked = moveActiveBlockResults.moveIsAllowed;
         outputGrid = moveActiveBlockResults.newGrid;
 
