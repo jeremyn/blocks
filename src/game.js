@@ -32,7 +32,7 @@ Game.run = function (canvasId, squareDim, statusBarHeight, borderLineWidth, grid
         timeFrame: null
     };
 
-    Game.grid = Game.addNewBlock(Game.c, Game.getEmptyGrid(Game.c)).newGrid;
+    Game.grid = Game.addNewBlock(Game.c, Game.getEmptyGrid(Game.c)).grid;
 
     Game.keyPressed = new KeypressStatus();
 
@@ -62,14 +62,14 @@ Game.getEmptyGrid = function(c) {
     return grid;
 };
 
-Game.addNewBlock = function(c, grid) {
-    var newGrid = Game.getGridCopy(grid);
+Game.addNewBlock = function(c, grid_) {
+    var grid = Game.getGridCopy(grid_);
     var addBlockSuccessful = true;
     var newBlock = c.ALL_BLOCKS[Math.floor(Math.random() * c.ALL_BLOCKS.length)];
-    var startColNum = (newGrid[0].length / 2) - Math.floor((newBlock[0].length / 2));
+    var startColNum = (grid[0].length / 2) - Math.floor((newBlock[0].length / 2));
     for (var rowNum = 0; rowNum < newBlock.length; rowNum++) {
         for (var colNum = 0; colNum < newBlock[0].length; colNum++) {
-            var gridCell = newGrid[rowNum][startColNum + colNum];
+            var gridCell = grid[rowNum][startColNum + colNum];
             var blockCellState = newBlock[rowNum][colNum];
             if (blockCellState !== c.colors.EMPTY) {
                 if (gridCell['state'] === c.colors.EMPTY) {
@@ -88,7 +88,7 @@ Game.addNewBlock = function(c, grid) {
 
     return {
         addBlockSuccessful: addBlockSuccessful,
-        newGrid: newGrid
+        grid: grid
     };
 };
 
@@ -104,17 +104,17 @@ Game.getActiveBlockCoords = function(grid) {
     return activeBlockCoords;
 };
 
-Game.updateActiveBlockPosition = function(c, grid, oldActiveCoords, newActiveCoords) {
-    var newGrid = Game.getGridCopy(grid);
+Game.updateActiveBlockPosition = function(c, grid_, oldActiveCoords, newActiveCoords) {
+    var grid = Game.getGridCopy(grid_);
     var moveIsAllowed = true;
     for (var i = 0; i < newActiveCoords.length; i++) {
         var newCoord = newActiveCoords[i];
         moveIsAllowed = (
-            (0 <= newCoord[0]) && (newCoord[0] < newGrid.length) &&
-            (0 <= newCoord[1]) && (newCoord[1] < newGrid[0].length) &&
+            (0 <= newCoord[0]) && (newCoord[0] < grid.length) &&
+            (0 <= newCoord[1]) && (newCoord[1] < grid[0].length) &&
             (
-                (newGrid[newCoord[0]][newCoord[1]]['isActive'] === true) ||
-                (newGrid[newCoord[0]][newCoord[1]]['state'] === c.colors.EMPTY)
+                (grid[newCoord[0]][newCoord[1]]['isActive'] === true) ||
+                (grid[newCoord[0]][newCoord[1]]['state'] === c.colors.EMPTY)
             )
         );
         if (!moveIsAllowed) {
@@ -123,19 +123,19 @@ Game.updateActiveBlockPosition = function(c, grid, oldActiveCoords, newActiveCoo
     }
 
     if (moveIsAllowed) {
-        var state = newGrid[oldActiveCoords[0][0]][oldActiveCoords[0][1]]['state'];
+        var state = grid[oldActiveCoords[0][0]][oldActiveCoords[0][1]]['state'];
         for (var i = 0; i < oldActiveCoords.length; i++) {
-            newGrid[oldActiveCoords[i][0]][oldActiveCoords[i][1]]['state'] = c.colors.EMPTY;
-            newGrid[oldActiveCoords[i][0]][oldActiveCoords[i][1]]['isActive'] = false;
+            grid[oldActiveCoords[i][0]][oldActiveCoords[i][1]]['state'] = c.colors.EMPTY;
+            grid[oldActiveCoords[i][0]][oldActiveCoords[i][1]]['isActive'] = false;
         }
         for (var i = 0; i < newActiveCoords.length; i++) {
-            newGrid[newActiveCoords[i][0]][newActiveCoords[i][1]]['state'] = state;
-            newGrid[newActiveCoords[i][0]][newActiveCoords[i][1]]['isActive'] = true;
+            grid[newActiveCoords[i][0]][newActiveCoords[i][1]]['state'] = state;
+            grid[newActiveCoords[i][0]][newActiveCoords[i][1]]['isActive'] = true;
         }
     }
     return {
         moveIsAllowed: moveIsAllowed,
-        newGrid: newGrid
+        grid: grid
     };
 };
 
@@ -197,12 +197,12 @@ Game.moveActiveBlock = function(c, grid, action) {
     return Game.updateActiveBlockPosition(c, grid, oldActiveCoords, newActiveCoords);
 };
 
-Game.clearMatchedRows = function(c, status_, grid) {
+Game.clearMatchedRows = function(c, status_, grid_) {
     var status = Game.getStatusCopy(status_);
-    var newGrid = Game.getGridCopy(grid);
+    var grid = Game.getGridCopy(grid_);
     var finishedRowNums = [];
-    for (var rowNum = 0; rowNum < newGrid.length; rowNum++) {
-        var emptyCols = newGrid[rowNum].filter(function(col) {
+    for (var rowNum = 0; rowNum < grid.length; rowNum++) {
+        var emptyCols = grid[rowNum].filter(function(col) {
             return col['state'] === c.colors.EMPTY;
         });
         if (emptyCols.length === 0) {
@@ -211,13 +211,13 @@ Game.clearMatchedRows = function(c, status_, grid) {
     }
     for (var i = 0; i < finishedRowNums.length; i++) {
         var finishedRowNum = finishedRowNums[i];
-        for (var colNum = 0; colNum < newGrid[0].length; colNum++) {
-            newGrid[finishedRowNum][colNum]['state'] = c.colors.EMPTY;
+        for (var colNum = 0; colNum < grid[0].length; colNum++) {
+            grid[finishedRowNum][colNum]['state'] = c.colors.EMPTY;
         }
         for (rowNum = finishedRowNum-1; rowNum >= 0; rowNum--) {
-            for (colNum = 0; colNum < newGrid[0].length; colNum++) {
-                newGrid[rowNum+1][colNum]['state'] = newGrid[rowNum][colNum]['state'];
-                newGrid[rowNum][colNum]['state'] = c.colors.EMPTY;
+            for (colNum = 0; colNum < grid[0].length; colNum++) {
+                grid[rowNum+1][colNum]['state'] = grid[rowNum][colNum]['state'];
+                grid[rowNum][colNum]['state'] = c.colors.EMPTY;
             }
         }
     }
@@ -225,55 +225,55 @@ Game.clearMatchedRows = function(c, status_, grid) {
     status.finishedRowCount += finishedRowNums.length;
     return {
         status: status,
-        newGrid: newGrid
+        grid: grid
     }
 };
 
-Game.processActionKeys = function(c, grid, keyPressed) {
-    var newGrid = Game.getGridCopy(grid);
+Game.processActionKeys = function(c, grid_, keyPressed) {
+    var grid = Game.getGridCopy(grid_);
     for (var i = 0; i < c.ACTION_MAP.length; i++) {
         var keyCode = c.ACTION_MAP[i][0];
         var action = c.ACTION_MAP[i][1];
         if (keyPressed.get(keyCode)['current'] &&
             !keyPressed.get(keyCode)['previous']) {
-            newGrid = Game.moveActiveBlock(c, newGrid, action).newGrid;
+            grid = Game.moveActiveBlock(c, grid, action).grid;
             break;
         }
     }
 
-    return newGrid;
+    return grid;
 };
 
-Game.processDownTick = function(c, status_, grid) {
+Game.processDownTick = function(c, status_, grid_) {
     var status = Game.getStatusCopy(status_);
-    var newGrid = Game.getGridCopy(grid);
+    var grid = Game.getGridCopy(grid_);
     var keepGoing = true;
     if (status.timeFrame > (status.lastDownTick + c.DOWN_TICK_DURATION)) {
         status.lastDownTick = status.timeFrame;
-        var moveActiveBlockResults = Game.moveActiveBlock(c, newGrid, c.actions.DOWN);
+        var moveActiveBlockResults = Game.moveActiveBlock(c, grid, c.actions.DOWN);
         var moveWorked = moveActiveBlockResults.moveIsAllowed;
-        newGrid = moveActiveBlockResults.newGrid;
+        grid = moveActiveBlockResults.grid;
 
         if (!moveWorked) {
-            for (var rowNum = 0; rowNum < newGrid.length; rowNum++) {
-                for (var colNum = 0; colNum < newGrid[0].length; colNum++) {
-                    newGrid[rowNum][colNum]['isActive'] = false;
+            for (var rowNum = 0; rowNum < grid.length; rowNum++) {
+                for (var colNum = 0; colNum < grid[0].length; colNum++) {
+                    grid[rowNum][colNum]['isActive'] = false;
                 }
             }
 
-            var clearMatchedRowsResults = Game.clearMatchedRows(c, status, newGrid);
+            var clearMatchedRowsResults = Game.clearMatchedRows(c, status, grid);
             status = clearMatchedRowsResults.status;
-            newGrid = clearMatchedRowsResults.newGrid;
+            grid = clearMatchedRowsResults.grid;
 
-            var addNewBlockResults = Game.addNewBlock(c, newGrid);
-            newGrid = addNewBlockResults.newGrid;
+            var addNewBlockResults = Game.addNewBlock(c, grid);
+            grid = addNewBlockResults.grid;
             keepGoing = addNewBlockResults.addBlockSuccessful;
         }
     }
     status.isGameOver = !keepGoing;
     return {
         status: status,
-        newGrid: newGrid
+        grid: grid
     };
 };
 
@@ -301,28 +301,28 @@ Game.processPauseKey = function(c, status_, keyPressed) {
     }
 };
 
-Game.update = function(c, status_, grid, keyPressed) {
+Game.update = function(c, status_, grid_, keyPressed) {
     var status = Game.getStatusCopy(status_);
-    var newGrid = Game.getGridCopy(grid);
+    var grid = Game.getGridCopy(grid_);
     var processPauseKeyResults = Game.processPauseKey(c, status, keyPressed);
     status = processPauseKeyResults.status;
     if (!status.isPaused) {
         if (status.isGameOver) {
             status.finishedRowCount = 0;
             status.isGameOver = false;
-            newGrid = Game.addNewBlock(c, Game.getEmptyGrid(c)).newGrid;
+            grid = Game.addNewBlock(c, Game.getEmptyGrid(c)).grid;
         } else {
-            var processActionKeysResults = Game.processActionKeys(c, newGrid, keyPressed);
-            newGrid = processActionKeysResults;
+            var processActionKeysResults = Game.processActionKeys(c, grid, keyPressed);
+            grid = processActionKeysResults;
 
-            var processDownTickResults = Game.processDownTick(c, status, newGrid);
+            var processDownTickResults = Game.processDownTick(c, status, grid);
             status = processDownTickResults.status;
-            newGrid = processDownTickResults.newGrid;
+            grid = processDownTickResults.grid;
         }
     }
     return {
         status: status,
-        newGrid: newGrid
+        grid: grid
     };
 };
 
@@ -465,7 +465,7 @@ Game.main = function(timeFrame) {
     Game.status.timeFrame = timeFrame;
     var updateResults = Game.update(Game.c, Game.status, Game.grid, Game.keyPressed);
     Game.status = updateResults.status;
-    Game.grid = updateResults.newGrid;
+    Game.grid = updateResults.grid;
     if (Game.status.isGameOver) {
         Game.keyPressed = new KeypressStatus();
         Game.status.isPaused = true;
