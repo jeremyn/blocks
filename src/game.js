@@ -36,7 +36,7 @@ Game.run = function (canvasId, squareDim, statusBarHeight, borderLineWidth, grid
 
     Game.keyPressed = new KeypressStatus();
 
-    Game.status = Game.draw(Game.c, Game.status, Game.grid, Game.display.getContext('2d'), Game.getPauseScreenText(Game.status, Game.c.CONTROLS_TEXT), Game.finishedRowCount);
+    Game.status = Game.draw(Game.c, Game.status, Game.grid, Game.display.getContext('2d'), Game.getPauseScreenText(Game.status, Game.c.CONTROLS_TEXT), Game.finishedRowCount).status;
 
     window.requestAnimationFrame(Game.main);
 };
@@ -194,7 +194,11 @@ Game.getUpdatedCoords = function(c, oldCoords, action) {
 Game.moveActiveBlock = function(c, grid, action) {
     var oldActiveCoords = Game.getActiveBlockCoords(grid);
     var newActiveCoords = Game.getUpdatedCoords(c, oldActiveCoords, action);
-    return Game.updateActiveBlockPosition(c, grid, oldActiveCoords, newActiveCoords);
+    var results = Game.updateActiveBlockPosition(c, grid, oldActiveCoords, newActiveCoords);
+    return {
+        moveIsAllowed: results.moveIsAllowed,
+        grid: results.grid
+    }
 };
 
 Game.clearMatchedRows = function(c, status_, grid_) {
@@ -240,8 +244,9 @@ Game.processActionKeys = function(c, grid_, keyPressed) {
             break;
         }
     }
-
-    return grid;
+    return {
+        grid: grid
+    };
 };
 
 Game.processDownTick = function(c, status_, grid_) {
@@ -313,7 +318,7 @@ Game.update = function(c, status_, grid_, keyPressed) {
             grid = Game.addNewBlock(c, Game.getEmptyGrid(c)).grid;
         } else {
             var processActionKeysResults = Game.processActionKeys(c, grid, keyPressed);
-            grid = processActionKeysResults;
+            grid = processActionKeysResults.grid;
 
             var processDownTickResults = Game.processDownTick(c, status, grid);
             status = processDownTickResults.status;
@@ -427,7 +432,9 @@ Game.draw = function (c, status_, grid, ctx, pauseScreenText) {
         Game.drawPauseScreen(c, ctx, pauseScreenText);
         status.shouldRedraw = false;
     }
-    return status;
+    return {
+        status: status
+    };
 };
 
 Game.keyDownHandler = function(e) {
@@ -472,7 +479,7 @@ Game.main = function(timeFrame) {
         Game.status.shouldResetLastDownTick = true;
     }
     if (Game.status.shouldRedraw) {
-        Game.status = Game.draw(Game.c, Game.status, Game.grid, Game.display.getContext('2d'), Game.getPauseScreenText(Game.status, Game.c.CONTROLS_TEXT));
+        Game.status = Game.draw(Game.c, Game.status, Game.grid, Game.display.getContext('2d'), Game.getPauseScreenText(Game.status, Game.c.CONTROLS_TEXT)).status;
     }
     Game.keyPressed.moveCurrToPrev();
     window.requestAnimationFrame(Game.main);
