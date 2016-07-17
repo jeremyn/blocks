@@ -36,14 +36,15 @@ Game.run = function (canvasId, squareDim, statusBarHeight, borderLineWidth, grid
 
     Game.lastDownTick = null;
 
-    Game.draw(
+    Game.f = Game.draw(
         Game.display.getContext('2d'),
         Game.grid,
         Game.ds,
         Game.c.colors,
         Game.c.FONT_SUFFIX,
         Game.getPauseScreenText(Game.f, Game.c.CONTROLS_TEXT),
-        Game.finishedRowCount
+        Game.finishedRowCount,
+        Game.f
     );
 
     window.requestAnimationFrame(Game.main);
@@ -449,14 +450,16 @@ Game.drawBorders = function(ctx, ds, colors) {
     ctx.stroke();
 };
 
-Game.draw = function(ctx, grid, ds, colors, fontSuffix, pauseScreenText, finishedRowCount) {
+Game.draw = function(ctx, grid, ds, colors, fontSuffix, pauseScreenText, finishedRowCount, inputF) {
+    var outputF = Game.getFlagsCopy(inputF);
     Game.drawGrid(ctx, grid, ds, colors);
     Game.drawStatusBar(ctx, ds, colors, fontSuffix, finishedRowCount);
     Game.drawBorders(ctx, ds, colors);
-    if (Game.f.isPaused) {
+    if (outputF.isPaused) {
         Game.drawPauseScreen(ctx, ds, colors, fontSuffix, pauseScreenText);
-        Game.f.shouldRedraw = false;
+        outputF.shouldRedraw = false;
     }
+    return outputF;
 };
 
 Game.keyDownHandler = function(e) {
@@ -501,14 +504,15 @@ Game.main = function(timeFrame) {
         Game.f.shouldResetLastDownTick = true;
     }
     if (Game.f.shouldRedraw) {
-        Game.draw(
+        Game.f = Game.draw(
             Game.display.getContext('2d'),
             Game.grid,
             Game.ds,
             Game.c.colors,
             Game.c.FONT_SUFFIX,
             Game.getPauseScreenText(Game.f, Game.c.CONTROLS_TEXT),
-            Game.finishedRowCount
+            Game.finishedRowCount,
+            Game.f
         );
     }
     window.requestAnimationFrame(Game.main);
