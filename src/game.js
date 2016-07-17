@@ -34,7 +34,7 @@ Game.run = function (canvasId, squareDim, statusBarHeight, borderLineWidth, grid
 
     Game.grid = Game.addNewBlock(Game.c, Game.getEmptyGrid(Game.c)).grid;
 
-    Game.keyPressed = new KeypressStatus();
+    Game.keyPressed = new KeyPressed();
 
     Game.status = Game.draw(Game.c, Game.status, Game.grid, Game.display.getContext('2d'), Game.getPauseScreenText(Game.status, Game.c.CONTROLS_TEXT), Game.finishedRowCount).status;
 
@@ -474,7 +474,7 @@ Game.main = function(timeFrame) {
     Game.status = updateResults.status;
     Game.grid = updateResults.grid;
     if (Game.status.isGameOver) {
-        Game.keyPressed = new KeypressStatus();
+        Game.keyPressed = new KeyPressed();
         Game.status.isPaused = true;
         Game.status.shouldResetLastDownTick = true;
     }
@@ -568,11 +568,11 @@ Game.getConstants = function(ds) {
     return c;
 };
 
-var KeypressStatus = function() {
+var KeyPressed = function() {
     this.values = {};
 };
 
-KeypressStatus.prototype.get = function(keyCode) {
+KeyPressed.prototype.get = function(keyCode) {
     if (!this.values.hasOwnProperty(keyCode)) {
         this.values[keyCode] = {
             'previous': false,
@@ -582,7 +582,7 @@ KeypressStatus.prototype.get = function(keyCode) {
     return this.values[keyCode];
 };
 
-KeypressStatus.prototype.moveCurrToPrev = function() {
+KeyPressed.prototype.moveCurrToPrev = function() {
     for (var key in this.values) {
         if (this.values.hasOwnProperty(key)) {
             this.values[key]['previous'] = this.values[key]['current'];
