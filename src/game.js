@@ -34,6 +34,8 @@ Game.run = function (canvasId, squareDim, statusBarHeight, borderLineWidth, grid
     Game.finishedRowCount = newGameVars.finishedRowCount;
     Game.grid = newGameVars.grid;
 
+    Game.lastDownTick = null;
+
     Game.draw(
         Game.display.getContext('2d'),
         Game.grid,
@@ -324,28 +326,35 @@ Game.processPauseKey = function(timeFrame, keyPressed, keyCodes, inputF, lastDow
     }
 };
 
-Game.update = function(grid, timeFrame) {
-    var isGameOver = Game.f.isGameOver;
-    var processPauseKeyResults = Game.processPauseKey(timeFrame, Game.keyPressed, Game.c.keyCodes, Game.f, Game.lastDownTick);
-    Game.lastDownTick = processPauseKeyResults.newDownTick;
-    Game.f = processPauseKeyResults.newF;
-    if (!Game.f.isPaused) {
-        if (isGameOver) {
-            var newGameVars = Game.getNewGameVars(Game.ds, Game.c.ALL_BLOCKS, Game.c.colors.EMPTY);
+Game.update = function(inputGrid, timeFrame, inputF, keyCodes, lastDownTick, ds, allBlocks, emptyState, finishedRowCount, actionMap, allActions, downTickDuration) {
+    var outputGrid = Game.getGridCopy(inputGrid);
+    var outputF = Game.getFlagsCopy(inputF);
+    var newFinishedRowCount = finishedRowCount;
+    var processPauseKeyResults = Game.processPauseKey(timeFrame, Game.keyPressed, keyCodes, outputF, lastDownTick);
+    var newDownTick = processPauseKeyResults.newDownTick;
+    outputF = processPauseKeyResults.newF;
+    if (!outputF.isPaused) {
+        if (outputF.isGameOver) {
+            var newGameVars = Game.getNewGameVars(ds, allBlocks, emptyState);
             Game.keyPressed = newGameVars.keyPressed;
-            Game.finishedRowCount = newGameVars.finishedRowCount;
-            Game.grid = newGameVars.grid;
-            isGameOver = false;
+            newFinishedRowCount = newGameVars.finishedRowCount;
+            outputGrid = newGameVars.grid;
+            outputF.isGameOver = false;
         } else {
-            grid = Game.processActionKeys(grid, Game.c.ACTION_MAP, Game.keyPressed, Game.c.actions, Game.c.colors.EMPTY);
-            var processDownTickResults = Game.processDownTick(grid, timeFrame, Game.lastDownTick, Game.c.DOWN_TICK_DURATION, Game.c.actions, Game.c.colors.EMPTY, Game.finishedRowCount, Game.c.ALL_BLOCKS);
-            isGameOver = processDownTickResults.isGameOver;
-            Game.lastDownTick = processDownTickResults.newDownTick;
-            Game.finishedRowCount = processDownTickResults.newFinishedRowCount;
-            Game.grid = processDownTickResults.newGrid;
+            outputGrid = Game.processActionKeys(outputGrid, actionMap, Game.keyPressed, allActions, emptyState);
+            var processDownTickResults = Game.processDownTick(outputGrid, timeFrame, newDownTick, downTickDuration, allActions, emptyState, newFinishedRowCount, allBlocks);
+            outputF.isGameOver = processDownTickResults.isGameOver;
+            newDownTick = processDownTickResults.newDownTick;
+            newFinishedRowCount = processDownTickResults.newFinishedRowCount;
+            outputGrid = processDownTickResults.newGrid;
         }
     }
-    return isGameOver;
+    return {
+        newF: outputF,
+        newFinishedRowCount: newFinishedRowCount,
+        newGrid: outputGrid,
+        newDownTick: newDownTick
+    };
 };
 
 Game.drawPauseScreen = function(ctx, ds, colors, fontSuffix, pauseScreenText) {
@@ -482,8 +491,11 @@ Game.getPauseScreenText = function(f, controlsText) {
 };
 
 Game.main = function(timeFrame) {
-    var isGameOver = Game.update(Game.grid, timeFrame);
-    Game.f.isGameOver = isGameOver;
+    var updateResults = Game.update(Game.grid, timeFrame, Game.f, Game.c.keyCodes, Game.lastDownTick, Game.ds, Game.c.ALL_BLOCKS, Game.c.colors.EMPTY, Game.finishedRowCount, Game.c.ACTION_MAP, Game.c.actions, Game.c.DOWN_TICK_DURATION);
+    Game.f = updateResults.newF;
+    Game.finishedRowCount = updateResults.newFinishedRowCount;
+    Game.grid = updateResults.newGrid;
+    Game.lastDownTick = updateResults.newDownTick;
     if (Game.f.isGameOver) {
         Game.f.isPaused = true;
         Game.f.shouldResetLastDownTick = true;
