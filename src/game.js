@@ -5,9 +5,6 @@
 var Game = {};
 
 Game.run = function (canvasId, squareDim, statusBarHeight, borderLineWidth, gridLineWidth) {
-    document.addEventListener('keydown', Game.keyDownHandler, false);
-    document.addEventListener('keyup', Game.keyUpHandler, false);
-
     Game.display = document.getElementById(canvasId);
 
     var ds = {
@@ -34,9 +31,12 @@ Game.run = function (canvasId, squareDim, statusBarHeight, borderLineWidth, grid
 
     Game.grid = Game.addNewBlock(Game.c, Game.getEmptyGrid(Game.c)).grid;
 
-    Game.keyPressed = new KeyPressed();
-
     Game.status = Game.draw(Game.c, Game.status, Game.grid, Game.display.getContext('2d'), Game.getPauseScreenText(Game.status, Game.c.CONTROLS_TEXT), Game.finishedRowCount).status;
+
+    Game.keyPressed = new KeyPressed();
+    Game.keyPressed.initialize();
+    document.addEventListener('keydown', Game.keyPressed, false);
+    document.addEventListener('keyup', Game.keyPressed, false);
 
     window.requestAnimationFrame(Game.main);
 };
@@ -238,8 +238,7 @@ Game.processActionKeys = function(c, grid_, keyPressed) {
     for (var i = 0; i < c.ACTION_MAP.length; i++) {
         var keyCode = c.ACTION_MAP[i][0];
         var action = c.ACTION_MAP[i][1];
-        if (keyPressed.get(keyCode)['current'] &&
-            !keyPressed.get(keyCode)['previous']) {
+        if (keyPressed.isNewlyPressed(keyCode)) {
             grid = Game.moveActiveBlock(c, grid, action).grid;
             break;
         }
@@ -285,8 +284,7 @@ Game.processDownTick = function(c, status_, grid_) {
 Game.processPauseKey = function(c, status_, keyPressed) {
     var status = Game.getStatusCopy(status_);
     var newDownTick = status.lastDownTick;
-    if (keyPressed.get(c.keyCodes.SPACE)['current'] &&
-        !keyPressed.get(c.keyCodes.SPACE)['previous']) {
+    if (keyPressed.isNewlyPressed(c.keyCodes.SPACE)) {
         if (status.isPaused) {
             status.isPaused = false;
             status.isFirstRun = false;
@@ -437,14 +435,6 @@ Game.draw = function (c, status_, grid, ctx, pauseScreenText) {
     };
 };
 
-Game.keyDownHandler = function(e) {
-    Game.keyPressed.get(e.keyCode)['current'] = true;
-};
-
-Game.keyUpHandler = function(e) {
-    Game.keyPressed.get(e.keyCode)['current'] = false;
-};
-
 Game.getPauseScreenText = function(status, controlsText) {
     var pauseHeaderText;
     if (status.isFirstRun) {
@@ -474,7 +464,7 @@ Game.main = function(timeFrame) {
     Game.status = updateResults.status;
     Game.grid = updateResults.grid;
     if (Game.status.isGameOver) {
-        Game.keyPressed = new KeyPressed();
+        Game.keyPressed.initialize();
         Game.status.isPaused = true;
         Game.status.shouldResetLastDownTick = true;
     }
@@ -568,24 +558,53 @@ Game.getConstants = function(ds) {
     return c;
 };
 
-var KeyPressed = function() {
+var KeyPressed = function() {};
+
+KeyPressed.prototype._initializeKeyCode = function(keyCode) {
+    this.values[keyCode] = {
+        'previous': false,
+        'current': false
+    };
+};
+
+KeyPressed.prototype._get = function(keyCode, which) {
+    if (!(keyCode in this.values)) {
+        this._initializeKeyCode(keyCode);
+    }
+    return this.values[keyCode][which];
+};
+
+KeyPressed.prototype._set = function(keyCode, which, value) {
+    if (!(keyCode in this.values)) {
+        this._initializeKeyCode(keyCode);
+    }
+    this.values[keyCode][which] = value;
+};
+
+KeyPressed.prototype.initialize = function() {
     this.values = {};
 };
 
-KeyPressed.prototype.get = function(keyCode) {
-    if (!this.values.hasOwnProperty(keyCode)) {
-        this.values[keyCode] = {
-            'previous': false,
-            'current': false
-        };
+// This function is used implicitly with document.addEventListener.
+KeyPressed.prototype.handleEvent = function(e) {
+    switch(e.type) {
+        case 'keydown':
+            this._set(e.keyCode, 'current', true);
+            break;
+        case 'keyup':
+            this._set(e.keyCode, 'current', false);
+            break;
     }
-    return this.values[keyCode];
+};
+
+KeyPressed.prototype.isNewlyPressed = function(keyCode) {
+    return this._get(keyCode, 'current') && !this._get(keyCode, 'previous');
 };
 
 KeyPressed.prototype.moveCurrToPrev = function() {
-    for (var key in this.values) {
-        if (this.values.hasOwnProperty(key)) {
-            this.values[key]['previous'] = this.values[key]['current'];
+    for (var keyCode in this.values) {
+        if (this.values.hasOwnProperty(keyCode)) {
+            this.values[keyCode]['previous'] = this.values[keyCode]['current'];
         }
     }
 };
