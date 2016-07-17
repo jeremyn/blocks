@@ -601,3 +601,13 @@ Game.getGridCopy = function(inputGrid) {
     }
     return outputGrid;
 };
+
+Game.getFlagsCopy = function(f) {
+    return {
+        isGameOver: f.isGameOver,
+        isFirstRun: f.isFirstRun,
+        isPaused: f.isPaused,
+        shouldRedraw: f.shouldRedraw,
+        shouldResetLastDownTick: f.shouldResetLastDownTick
+    };
+};
