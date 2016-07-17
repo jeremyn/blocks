@@ -21,22 +21,22 @@ Game.run = function (canvasId, squareDim, statusBarHeight, borderLineWidth, grid
 
     Game.c = Game.getConstants(ds);
 
-    Game.f = {
+    Game.status = {
         isGameOver: false,
         isFirstRun: true,
         isPaused: true,
         shouldRedraw: false,
-        shouldResetLastDownTick: true
+        shouldResetLastDownTick: true,
+        finishedRowCount: 0,
+        lastDownTick: null,
+        timeFrame: null
     };
 
-    Game.finishedRowCount = 0;
     Game.grid = Game.addNewBlock(Game.c, Game.getEmptyGrid(Game.c)).newGrid;
 
     Game.keyPressed = new KeypressStatus();
 
-    Game.lastDownTick = null;
-
-    Game.f = Game.draw(Game.c, Game.f, Game.grid, Game.display.getContext('2d'), Game.getPauseScreenText(Game.f, Game.c.CONTROLS_TEXT), Game.finishedRowCount);
+    Game.status = Game.draw(Game.c, Game.status, Game.grid, Game.display.getContext('2d'), Game.getPauseScreenText(Game.status, Game.c.CONTROLS_TEXT), Game.finishedRowCount);
 
     window.requestAnimationFrame(Game.main);
 };
@@ -197,7 +197,8 @@ Game.moveActiveBlock = function(c, grid, action) {
     return Game.updateActiveBlockPosition(c, grid, oldActiveCoords, newActiveCoords);
 };
 
-Game.clearMatchedRows = function(c, grid, finishedRowCount) {
+Game.clearMatchedRows = function(c, status_, grid) {
+    var status = Game.getStatusCopy(status_);
     var newGrid = Game.getGridCopy(grid);
     var finishedRowNums = [];
     for (var rowNum = 0; rowNum < newGrid.length; rowNum++) {
@@ -220,8 +221,10 @@ Game.clearMatchedRows = function(c, grid, finishedRowCount) {
             }
         }
     }
+
+    status.finishedRowCount += finishedRowNums.length;
     return {
-        finishedRowCount: finishedRowCount + finishedRowNums.length,
+        status: status,
         newGrid: newGrid
     }
 };
@@ -241,13 +244,12 @@ Game.processActionKeys = function(c, grid, keyPressed) {
     return newGrid;
 };
 
-Game.processDownTick = function(c, grid, timeFrame, lastDownTick, finishedRowCount) {
+Game.processDownTick = function(c, status_, grid) {
+    var status = Game.getStatusCopy(status_);
     var newGrid = Game.getGridCopy(grid);
     var keepGoing = true;
-    var newDownTick = lastDownTick;
-    var newFinishedRowCount = finishedRowCount;
-    if (timeFrame > (lastDownTick + c.DOWN_TICK_DURATION)) {
-        newDownTick = timeFrame;
+    if (status.timeFrame > (status.lastDownTick + c.DOWN_TICK_DURATION)) {
+        status.lastDownTick = status.timeFrame;
         var moveActiveBlockResults = Game.moveActiveBlock(c, newGrid, c.actions.DOWN);
         var moveWorked = moveActiveBlockResults.moveIsAllowed;
         newGrid = moveActiveBlockResults.newGrid;
@@ -259,75 +261,68 @@ Game.processDownTick = function(c, grid, timeFrame, lastDownTick, finishedRowCou
                 }
             }
 
-            var clearMatchedRowsResults = Game.clearMatchedRows(c, newGrid, finishedRowCount);
+            var clearMatchedRowsResults = Game.clearMatchedRows(c, status, newGrid);
+            status = clearMatchedRowsResults.status;
             newGrid = clearMatchedRowsResults.newGrid;
-            newFinishedRowCount = clearMatchedRowsResults.finishedRowCount;
 
             var addNewBlockResults = Game.addNewBlock(c, newGrid);
             newGrid = addNewBlockResults.newGrid;
             keepGoing = addNewBlockResults.addBlockSuccessful;
         }
     }
+    status.isGameOver = !keepGoing;
     return {
-        isGameOver: !keepGoing,
-        newDownTick: newDownTick,
-        newFinishedRowCount: newFinishedRowCount,
+        status: status,
         newGrid: newGrid
     };
 };
 
-Game.processPauseKey = function(c, f, timeFrame, keyPressed, lastDownTick) {
-    var newDownTick = lastDownTick;
-    var newF = Game.getFlagsCopy(f);
+Game.processPauseKey = function(c, status_, keyPressed) {
+    var status = Game.getStatusCopy(status_);
+    var newDownTick = status.lastDownTick;
     if (keyPressed.get(c.keyCodes.SPACE)['current'] &&
         !keyPressed.get(c.keyCodes.SPACE)['previous']) {
-        if (newF.isPaused) {
-            newF.isPaused = false;
-            newF.isFirstRun = false;
-            newF.shouldRedraw = true;
-            if (newF.shouldResetLastDownTick) {
-                newDownTick = timeFrame;
-                newF.shouldResetLastDownTick = false;
+        if (status.isPaused) {
+            status.isPaused = false;
+            status.isFirstRun = false;
+            status.shouldRedraw = true;
+            if (status.shouldResetLastDownTick) {
+                newDownTick = status.timeFrame;
+                status.shouldResetLastDownTick = false;
             }
         } else {
-            newF.isPaused = true;
+            status.isPaused = true;
         }
     }
 
+    status.lastDownTick = newDownTick;
     return {
-        newDownTick: newDownTick,
-        newF: newF
+        status: status
     }
 };
 
-Game.update = function(c, f, grid, timeFrame, lastDownTick, finishedRowCount, keyPressed) {
+Game.update = function(c, status_, grid, keyPressed) {
+    var status = Game.getStatusCopy(status_);
     var newGrid = Game.getGridCopy(grid);
-    var newF = Game.getFlagsCopy(f);
-    var newFinishedRowCount = finishedRowCount;
-    var processPauseKeyResults = Game.processPauseKey(c, newF, timeFrame, keyPressed, lastDownTick);
-    var newDownTick = processPauseKeyResults.newDownTick;
-    newF = processPauseKeyResults.newF;
-    if (!newF.isPaused) {
-        if (newF.isGameOver) {
-            newFinishedRowCount = 0;
+    var processPauseKeyResults = Game.processPauseKey(c, status, keyPressed);
+    status = processPauseKeyResults.status;
+    if (!status.isPaused) {
+        if (status.isGameOver) {
+            status.finishedRowCount = 0;
+            status.isGameOver = false;
             newGrid = Game.addNewBlock(c, Game.getEmptyGrid(c)).newGrid;
-            newF.isGameOver = false;
         } else {
             var processActionKeysResults = Game.processActionKeys(c, newGrid, keyPressed);
             newGrid = processActionKeysResults;
 
-            var processDownTickResults = Game.processDownTick(c, newGrid, timeFrame, newDownTick, newFinishedRowCount);
-            newF.isGameOver = processDownTickResults.isGameOver;
-            newDownTick = processDownTickResults.newDownTick;
-            newFinishedRowCount = processDownTickResults.newFinishedRowCount;
+            var processDownTickResults = Game.processDownTick(c, status, newGrid);
+            status = processDownTickResults.status;
             newGrid = processDownTickResults.newGrid;
         }
     }
     return {
-        newF: newF,
-        newFinishedRowCount: newFinishedRowCount,
-        newGrid: newGrid,
-        newDownTick: newDownTick
+        status: status,
+        newGrid: newGrid
     };
 };
 
@@ -391,7 +386,7 @@ Game.drawGrid = function(c, grid, ctx) {
     }
 };
 
-Game.drawStatusBar = function(c, ctx, finishedRowCount) {
+Game.drawStatusBar = function(c, status, ctx) {
     ctx.fillStyle = c.colors.EMPTY;
     ctx.fillRect(
         0,
@@ -400,7 +395,7 @@ Game.drawStatusBar = function(c, ctx, finishedRowCount) {
         c.ds.statusBarHeight
     );
 
-    var scoreText = 'Lines completed: ' + finishedRowCount;
+    var scoreText = 'Lines completed: ' + status.finishedRowCount;
     var fontHeight = 0.5 * c.ds.statusBarHeight;
     ctx.font = fontHeight + c.FONT_SUFFIX;
     ctx.fillStyle = c.colors.BORDER;
@@ -423,16 +418,16 @@ Game.drawBorders = function(c, ctx) {
     ctx.stroke();
 };
 
-Game.draw = function (c, f, grid, ctx, pauseScreenText, finishedRowCount) {
-    var newF = Game.getFlagsCopy(f);
+Game.draw = function (c, status_, grid, ctx, pauseScreenText) {
+    var status = Game.getStatusCopy(status_);
     Game.drawGrid(c, grid, ctx);
-    Game.drawStatusBar(c, ctx, finishedRowCount);
+    Game.drawStatusBar(c, status, ctx);
     Game.drawBorders(c, ctx);
-    if (newF.isPaused) {
+    if (status.isPaused) {
         Game.drawPauseScreen(c, ctx, pauseScreenText);
-        newF.shouldRedraw = false;
+        status.shouldRedraw = false;
     }
-    return newF;
+    return status;
 };
 
 Game.keyDownHandler = function(e) {
@@ -443,15 +438,15 @@ Game.keyUpHandler = function(e) {
     Game.keyPressed.get(e.keyCode)['current'] = false;
 };
 
-Game.getPauseScreenText = function(f, controlsText) {
+Game.getPauseScreenText = function(status, controlsText) {
     var pauseHeaderText;
-    if (f.isFirstRun) {
+    if (status.isFirstRun) {
         pauseHeaderText = [
             "Welcome to Blocks!",
             "Press \<space\> to unpause and begin.",
             ""
         ];
-    } else if (f.isGameOver) {
+    } else if (status.isGameOver) {
         pauseHeaderText = [
             "Game over!",
             "Press \<space\> to play again.",
@@ -467,18 +462,17 @@ Game.getPauseScreenText = function(f, controlsText) {
 };
 
 Game.main = function(timeFrame) {
-    var updateResults = Game.update(Game.c, Game.f, Game.grid, timeFrame, Game.lastDownTick, Game.finishedRowCount, Game.keyPressed);
-    Game.f = updateResults.newF;
-    Game.finishedRowCount = updateResults.newFinishedRowCount;
+    Game.status.timeFrame = timeFrame;
+    var updateResults = Game.update(Game.c, Game.status, Game.grid, Game.keyPressed);
+    Game.status = updateResults.status;
     Game.grid = updateResults.newGrid;
-    Game.lastDownTick = updateResults.newDownTick;
-    if (Game.f.isGameOver) {
+    if (Game.status.isGameOver) {
         Game.keyPressed = new KeypressStatus();
-        Game.f.isPaused = true;
-        Game.f.shouldResetLastDownTick = true;
+        Game.status.isPaused = true;
+        Game.status.shouldResetLastDownTick = true;
     }
-    if (Game.f.shouldRedraw) {
-        Game.f = Game.draw(Game.c, Game.f, Game.grid, Game.display.getContext('2d'), Game.getPauseScreenText(Game.f, Game.c.CONTROLS_TEXT), Game.finishedRowCount);
+    if (Game.status.shouldRedraw) {
+        Game.status = Game.draw(Game.c, Game.status, Game.grid, Game.display.getContext('2d'), Game.getPauseScreenText(Game.status, Game.c.CONTROLS_TEXT));
     }
     Game.keyPressed.moveCurrToPrev();
     window.requestAnimationFrame(Game.main);
@@ -604,12 +598,15 @@ Game.getGridCopy = function(gridOriginal) {
     return gridCopy;
 };
 
-Game.getFlagsCopy = function(f) {
+Game.getStatusCopy = function(status) {
     return {
-        isGameOver: f.isGameOver,
-        isFirstRun: f.isFirstRun,
-        isPaused: f.isPaused,
-        shouldRedraw: f.shouldRedraw,
-        shouldResetLastDownTick: f.shouldResetLastDownTick
+        isGameOver: status.isGameOver,
+        isFirstRun: status.isFirstRun,
+        isPaused: status.isPaused,
+        shouldRedraw: status.shouldRedraw,
+        shouldResetLastDownTick: status.shouldResetLastDownTick,
+        finishedRowCount: status.finishedRowCount,
+        lastDownTick: status.lastDownTick,
+        timeFrame: status.timeFrame
     };
 };
