@@ -299,27 +299,36 @@ Game.processDownTick = function(inputGrid, timeFrame, lastDownTick, downTickDura
     };
 };
 
-Game.processPauseKey = function(timeFrame) {
-    if (Game.keyPressed.get(Game.c.keyCodes.SPACE)['current'] &&
-        !Game.keyPressed.get(Game.c.keyCodes.SPACE)['previous']) {
-        if (Game.f.isPaused) {
-            Game.f.isPaused = false;
-            Game.f.isFirstRun = false;
-            Game.f.shouldRedraw = true;
-            if (Game.f.shouldResetLastDownTick) {
-                Game.lastDownTick = timeFrame;
-                Game.f.shouldResetLastDownTick = false;
+Game.processPauseKey = function(timeFrame, keyPressed, keyCodes, inputF, lastDownTick) {
+    var newDownTick = lastDownTick;
+    var outputF = Game.getFlagsCopy(inputF);
+    if (keyPressed.get(keyCodes.SPACE)['current'] &&
+        !keyPressed.get(keyCodes.SPACE)['previous']) {
+        if (outputF.isPaused) {
+            outputF.isPaused = false;
+            outputF.isFirstRun = false;
+            outputF.shouldRedraw = true;
+            if (outputF.shouldResetLastDownTick) {
+                newDownTick = timeFrame;
+                outputF.shouldResetLastDownTick = false;
             }
         } else {
-            Game.f.isPaused = true;
+            outputF.isPaused = true;
         }
     }
-    Game.keyPressed.get(Game.c.keyCodes.SPACE)['previous'] = Game.keyPressed.get(Game.c.keyCodes.SPACE)['current'];
+    keyPressed.get(keyCodes.SPACE)['previous'] = keyPressed.get(keyCodes.SPACE)['current'];
+
+    return {
+        newDownTick: newDownTick,
+        newF: outputF
+    }
 };
 
 Game.update = function(grid, timeFrame) {
     var isGameOver = Game.f.isGameOver;
-    Game.processPauseKey(timeFrame);
+    var processPauseKeyResults = Game.processPauseKey(timeFrame, Game.keyPressed, Game.c.keyCodes, Game.f, Game.lastDownTick);
+    Game.lastDownTick = processPauseKeyResults.newDownTick;
+    Game.f = processPauseKeyResults.newF;
     if (!Game.f.isPaused) {
         if (isGameOver) {
             var newGameVars = Game.getNewGameVars(Game.ds, Game.c.ALL_BLOCKS, Game.c.colors.EMPTY);
@@ -473,7 +482,8 @@ Game.getPauseScreenText = function(f, controlsText) {
 };
 
 Game.main = function(timeFrame) {
-    Game.f.isGameOver = Game.update(Game.grid, timeFrame);
+    var isGameOver = Game.update(Game.grid, timeFrame);
+    Game.f.isGameOver = isGameOver;
     if (Game.f.isGameOver) {
         Game.f.isPaused = true;
         Game.f.shouldResetLastDownTick = true;
