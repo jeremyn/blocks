@@ -264,12 +264,14 @@ Game.processActionKeys = function(inputGrid, actionMap, keyPressed, allActions, 
     return outputGrid;
 };
 
-Game.processDownTick = function(inputGrid, timeFrame) {
+Game.processDownTick = function(inputGrid, timeFrame, lastDownTick, downTickDuration, allActions, emptyState, finishedRowCount, allBlocks) {
     var outputGrid = Game.getGridCopy(inputGrid);
     var keepGoing = true;
-    if (timeFrame > (Game.lastDownTick + Game.c.DOWN_TICK_DURATION)) {
-        Game.lastDownTick = timeFrame;
-        var moveActiveBlockResults = Game.moveActiveBlock(outputGrid, Game.c.actions.DOWN, Game.c.actions, Game.c.colors.EMPTY);
+    var newDownTick = lastDownTick;
+    var newFinishedRowCount = finishedRowCount;
+    if (timeFrame > (lastDownTick + downTickDuration)) {
+        newDownTick = timeFrame;
+        var moveActiveBlockResults = Game.moveActiveBlock(outputGrid, allActions.DOWN, allActions, emptyState);
         var moveWorked = moveActiveBlockResults.moveIsAllowed;
         outputGrid = moveActiveBlockResults.newGrid;
 
@@ -280,17 +282,19 @@ Game.processDownTick = function(inputGrid, timeFrame) {
                 }
             }
 
-            var clearMatchedRowsResults = Game.clearMatchedRows(outputGrid, Game.finishedRowCount, Game.c.colors.EMPTY);
+            var clearMatchedRowsResults = Game.clearMatchedRows(outputGrid, finishedRowCount, emptyState);
             outputGrid = clearMatchedRowsResults.newGrid;
-            Game.finishedRowCount = clearMatchedRowsResults.finishedRowCount;
+            newFinishedRowCount = clearMatchedRowsResults.finishedRowCount;
 
-            var addNewBlockResults = Game.addNewBlock(outputGrid, Game.c.ALL_BLOCKS, Game.c.colors.EMPTY);
+            var addNewBlockResults = Game.addNewBlock(outputGrid, allBlocks, emptyState);
             outputGrid = addNewBlockResults.newGrid;
             keepGoing = addNewBlockResults.addBlockSuccessful;
         }
     }
     return {
         isGameOver: !keepGoing,
+        newDownTick: newDownTick,
+        newFinishedRowCount: newFinishedRowCount,
         newGrid: outputGrid
     };
 };
@@ -325,8 +329,10 @@ Game.update = function(grid, timeFrame) {
             isGameOver = false;
         } else {
             grid = Game.processActionKeys(grid, Game.c.ACTION_MAP, Game.keyPressed, Game.c.actions, Game.c.colors.EMPTY);
-            var processDownTickResults = Game.processDownTick(grid, timeFrame);
+            var processDownTickResults = Game.processDownTick(grid, timeFrame, Game.lastDownTick, Game.c.DOWN_TICK_DURATION, Game.c.actions, Game.c.colors.EMPTY, Game.finishedRowCount, Game.c.ALL_BLOCKS);
             isGameOver = processDownTickResults.isGameOver;
+            Game.lastDownTick = processDownTickResults.newDownTick;
+            Game.finishedRowCount = processDownTickResults.newFinishedRowCount;
             Game.grid = processDownTickResults.newGrid;
         }
     }
