@@ -158,12 +158,12 @@ Game.updateActiveBlockPosition = function(inputGrid, oldActiveCoords, newActiveC
     };
 };
 
-Game.getUpdatedCoords = function(oldCoords, action) {
+Game.getUpdatedCoords = function(oldCoords, action, allActions) {
     var newCoords;
-    if (action === Game.c.actions.CLOCKWISE) {
+    if (action === allActions.CLOCKWISE) {
         newCoords = oldCoords;
         for (var j = 0; j < 3; j++) {
-            newCoords = Game.getUpdatedCoords(newCoords, Game.c.actions.COUNTERCLOCKWISE);
+            newCoords = Game.getUpdatedCoords(newCoords, allActions.COUNTERCLOCKWISE, allActions);
         }
     } else {
         var rows = oldCoords.map(function(c) { return c[0]; });
@@ -181,16 +181,16 @@ Game.getUpdatedCoords = function(oldCoords, action) {
             var oldCol = oldCoords[i][1];
             var newRow;
             var newCol;
-            if (action === Game.c.actions.LEFT) {
+            if (action === allActions.LEFT) {
                 newRow = oldRow;
                 newCol = oldCol-1;
-            } else if (action === Game.c.actions.RIGHT) {
+            } else if (action === allActions.RIGHT) {
                 newRow = oldRow;
                 newCol = oldCol+1;
-            } else if (action === Game.c.actions.DOWN) {
+            } else if (action === allActions.DOWN) {
                 newRow = oldRow+1;
                 newCol = oldCol;
-            } else if (action === Game.c.actions.COUNTERCLOCKWISE) {
+            } else if (action === allActions.COUNTERCLOCKWISE) {
                 newRow = minRow+((maxCol-minCol)-(oldCol-minCol));
                 newCol = minCol+(oldRow-minRow);
 
@@ -200,7 +200,7 @@ Game.getUpdatedCoords = function(oldCoords, action) {
                 } else if (new Set(cols).size === 1) {
                     newCol--;
                 }
-            } else if (action === Game.c.actions.REFLECT) {
+            } else if (action === allActions.REFLECT) {
                 newRow = oldRow;
                 newCol = maxCol - oldCol + minCol;
             }
@@ -210,9 +210,9 @@ Game.getUpdatedCoords = function(oldCoords, action) {
     return newCoords;
 };
 
-Game.moveActiveBlock = function(grid, action) {
+Game.moveActiveBlock = function(grid, action, allActions) {
     var oldActiveCoords = Game.getActiveBlockCoords(grid);
-    var newActiveCoords = Game.getUpdatedCoords(oldActiveCoords, action);
+    var newActiveCoords = Game.getUpdatedCoords(oldActiveCoords, action, allActions);
     return Game.updateActiveBlockPosition(grid, oldActiveCoords, newActiveCoords);
 };
 
@@ -252,7 +252,7 @@ Game.processActionKeys = function(inputGrid) {
         var action = Game.c.ACTION_MAP[i][1];
         if (Game.keyPressed.get(keyCode)['current'] &&
             !Game.keyPressed.get(keyCode)['previous']) {
-            outputGrid = Game.moveActiveBlock(outputGrid, action).newGrid;
+            outputGrid = Game.moveActiveBlock(outputGrid, action, Game.c.actions).newGrid;
             break;
         }
     }
@@ -269,7 +269,7 @@ Game.processDownTick = function(inputGrid, timeFrame) {
     var keepGoing = true;
     if (timeFrame > (Game.lastDownTick + Game.c.DOWN_TICK_DURATION)) {
         Game.lastDownTick = timeFrame;
-        var moveActiveBlockResults = Game.moveActiveBlock(outputGrid, Game.c.actions.DOWN);
+        var moveActiveBlockResults = Game.moveActiveBlock(outputGrid, Game.c.actions.DOWN, Game.c.actions);
         var moveWorked = moveActiveBlockResults.moveIsAllowed;
         outputGrid = moveActiveBlockResults.newGrid;
 
