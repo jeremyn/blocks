@@ -29,9 +29,8 @@ Game.run = function (canvasId, squareDim, statusBarHeight, borderLineWidth, grid
         shouldResetLastDownTick: true
     };
 
-    var newGameVars = Game.getNewGameVars(Game.c);
-    Game.finishedRowCount = newGameVars.finishedRowCount;
-    Game.grid = newGameVars.grid;
+    Game.finishedRowCount = 0;
+    Game.grid = Game.addNewBlock(Game.c, Game.getEmptyGrid(Game.c)).newGrid;
 
     Game.keyPressed = new KeypressStatus();
 
@@ -61,14 +60,6 @@ Game.getEmptyGrid = function(c) {
         grid.push(row);
     }
     return grid;
-};
-
-Game.getNewGameVars = function(c) {
-//Game.getNewGameVars = function(ds, allBlocks, emptyState) {
-    return {
-        finishedRowCount: 0,
-        grid: Game.addNewBlock(c, Game.getEmptyGrid(c)).newGrid
-    };
 };
 
 Game.addNewBlock = function(c, grid) {
@@ -318,9 +309,8 @@ Game.update = function(c, f, grid, timeFrame, lastDownTick, finishedRowCount, ke
     newF = processPauseKeyResults.newF;
     if (!newF.isPaused) {
         if (newF.isGameOver) {
-            var newGameVars = Game.getNewGameVars(c);
-            newFinishedRowCount = newGameVars.finishedRowCount;
-            newGrid = newGameVars.grid;
+            newFinishedRowCount = 0;
+            newGrid = Game.addNewBlock(c, Game.getEmptyGrid(c)).newGrid;
             newF.isGameOver = false;
         } else {
             var processActionKeysResults = Game.processActionKeys(c, newGrid, keyPressed);
