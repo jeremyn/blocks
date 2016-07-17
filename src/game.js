@@ -40,7 +40,7 @@ Game.run = function (canvasId, squareDim, statusBarHeight, borderLineWidth, grid
         Game.ds,
         Game.c.colors,
         Game.c.FONT_SUFFIX,
-        Game.getPauseScreenText(),
+        Game.getPauseScreenText(Game.f, Game.c.CONTROLS_TEXT),
         Game.finishedRowCount
     );
 
@@ -443,15 +443,15 @@ Game.keyUpHandler = function(e) {
     Game.keyPressed.get(e.keyCode)['current'] = false;
 };
 
-Game.getPauseScreenText = function() {
+Game.getPauseScreenText = function(f, controlsText) {
     var pauseHeaderText;
-    if (Game.f.isFirstRun) {
+    if (f.isFirstRun) {
         pauseHeaderText = [
             "Welcome to Blocks!",
             "Press \<space\> to unpause and begin.",
             ""
         ];
-    } else if (Game.f.isGameOver) {
+    } else if (f.isGameOver) {
         pauseHeaderText = [
             "Game over!",
             "Press \<space\> to play again.",
@@ -463,7 +463,7 @@ Game.getPauseScreenText = function() {
             ""
         ];
     }
-    return pauseHeaderText.concat(Game.c.CONTROLS_TEXT);
+    return pauseHeaderText.concat(controlsText);
 };
 
 Game.main = function(timeFrame) {
@@ -479,7 +479,7 @@ Game.main = function(timeFrame) {
             Game.ds,
             Game.c.colors,
             Game.c.FONT_SUFFIX,
-            Game.getPauseScreenText(),
+            Game.getPauseScreenText(Game.f, Game.c.CONTROLS_TEXT),
             Game.finishedRowCount
         );
     }
