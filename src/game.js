@@ -245,20 +245,20 @@ Game.clearMatchedRows = function(inputGrid, finishedRowCount, emptyState) {
     }
 };
 
-Game.processActionKeys = function(inputGrid) {
+Game.processActionKeys = function(inputGrid, actionMap, keyPressed, allActions, emptyState) {
     var outputGrid = Game.getGridCopy(inputGrid);
-    for (var i = 0; i < Game.c.ACTION_MAP.length; i++) {
-        var keyCode = Game.c.ACTION_MAP[i][0];
-        var action = Game.c.ACTION_MAP[i][1];
-        if (Game.keyPressed.get(keyCode)['current'] &&
-            !Game.keyPressed.get(keyCode)['previous']) {
-            outputGrid = Game.moveActiveBlock(outputGrid, action, Game.c.actions, Game.c.colors.EMPTY).newGrid;
+    for (var i = 0; i < actionMap.length; i++) {
+        var keyCode = actionMap[i][0];
+        var action = actionMap[i][1];
+        if (keyPressed.get(keyCode)['current'] &&
+            !keyPressed.get(keyCode)['previous']) {
+            outputGrid = Game.moveActiveBlock(outputGrid, action, allActions, emptyState).newGrid;
             break;
         }
     }
 
-    for (var i = 0; i < Game.c.ACTION_MAP.length; i++) {
-        Game.keyPressed.get(Game.c.ACTION_MAP[i][0])['previous'] = Game.keyPressed.get(Game.c.ACTION_MAP[i][0])['current'];
+    for (var i = 0; i < actionMap.length; i++) {
+        keyPressed.get(actionMap[i][0])['previous'] = keyPressed.get(actionMap[i][0])['current'];
     }
 
     return outputGrid;
@@ -324,7 +324,7 @@ Game.update = function(grid, timeFrame) {
             Game.grid = newGameVars.grid;
             isGameOver = false;
         } else {
-            grid = Game.processActionKeys(grid);
+            grid = Game.processActionKeys(grid, Game.c.ACTION_MAP, Game.keyPressed, Game.c.actions, Game.c.colors.EMPTY);
             var processDownTickResults = Game.processDownTick(grid, timeFrame);
             isGameOver = processDownTickResults.isGameOver;
             Game.grid = processDownTickResults.newGrid;
