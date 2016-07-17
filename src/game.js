@@ -30,9 +30,10 @@ Game.run = function (canvasId, squareDim, statusBarHeight, borderLineWidth, grid
     };
 
     var newGameVars = Game.getNewGameVars(Game.ds, Game.c.ALL_BLOCKS, Game.c.colors.EMPTY);
-    Game.keyPressed = newGameVars.keyPressed;
     Game.finishedRowCount = newGameVars.finishedRowCount;
     Game.grid = newGameVars.grid;
+
+    Game.keyPressed = new KeypressStatus();
 
     Game.lastDownTick = null;
 
@@ -73,7 +74,6 @@ Game.getEmptyGrid = function(ds, initialState) {
 
 Game.getNewGameVars = function(ds, allBlocks, emptyState) {
     return {
-        keyPressed: new KeypressStatus(),
         finishedRowCount: 0,
         grid: Game.addNewBlock(
             Game.getEmptyGrid(ds, emptyState),
@@ -260,10 +260,6 @@ Game.processActionKeys = function(inputGrid, actionMap, keyPressed, allActions, 
         }
     }
 
-    for (var i = 0; i < actionMap.length; i++) {
-        keyPressed.get(actionMap[i][0])['previous'] = keyPressed.get(actionMap[i][0])['current'];
-    }
-
     return outputGrid;
 };
 
@@ -319,7 +315,6 @@ Game.processPauseKey = function(timeFrame, keyPressed, keyCodes, inputF, lastDow
             outputF.isPaused = true;
         }
     }
-    keyPressed.get(keyCodes.SPACE)['previous'] = keyPressed.get(keyCodes.SPACE)['current'];
 
     return {
         newDownTick: newDownTick,
@@ -327,22 +322,23 @@ Game.processPauseKey = function(timeFrame, keyPressed, keyCodes, inputF, lastDow
     }
 };
 
-Game.update = function(inputGrid, timeFrame, inputF, keyCodes, lastDownTick, ds, allBlocks, emptyState, finishedRowCount, actionMap, allActions, downTickDuration) {
+Game.update = function(inputGrid, timeFrame, inputF, keyCodes, lastDownTick, ds, allBlocks, emptyState, finishedRowCount, actionMap, allActions, downTickDuration, keyPressed) {
     var outputGrid = Game.getGridCopy(inputGrid);
     var outputF = Game.getFlagsCopy(inputF);
     var newFinishedRowCount = finishedRowCount;
-    var processPauseKeyResults = Game.processPauseKey(timeFrame, Game.keyPressed, keyCodes, outputF, lastDownTick);
+    var processPauseKeyResults = Game.processPauseKey(timeFrame, keyPressed, keyCodes, outputF, lastDownTick);
     var newDownTick = processPauseKeyResults.newDownTick;
     outputF = processPauseKeyResults.newF;
     if (!outputF.isPaused) {
         if (outputF.isGameOver) {
             var newGameVars = Game.getNewGameVars(ds, allBlocks, emptyState);
-            Game.keyPressed = newGameVars.keyPressed;
             newFinishedRowCount = newGameVars.finishedRowCount;
             outputGrid = newGameVars.grid;
             outputF.isGameOver = false;
         } else {
-            outputGrid = Game.processActionKeys(outputGrid, actionMap, Game.keyPressed, allActions, emptyState);
+            var processActionKeysResults = Game.processActionKeys(outputGrid, actionMap, keyPressed, allActions, emptyState);
+            outputGrid = processActionKeysResults;
+
             var processDownTickResults = Game.processDownTick(outputGrid, timeFrame, newDownTick, downTickDuration, allActions, emptyState, newFinishedRowCount, allBlocks);
             outputF.isGameOver = processDownTickResults.isGameOver;
             newDownTick = processDownTickResults.newDownTick;
@@ -494,12 +490,13 @@ Game.getPauseScreenText = function(f, controlsText) {
 };
 
 Game.main = function(timeFrame) {
-    var updateResults = Game.update(Game.grid, timeFrame, Game.f, Game.c.keyCodes, Game.lastDownTick, Game.ds, Game.c.ALL_BLOCKS, Game.c.colors.EMPTY, Game.finishedRowCount, Game.c.ACTION_MAP, Game.c.actions, Game.c.DOWN_TICK_DURATION);
+    var updateResults = Game.update(Game.grid, timeFrame, Game.f, Game.c.keyCodes, Game.lastDownTick, Game.ds, Game.c.ALL_BLOCKS, Game.c.colors.EMPTY, Game.finishedRowCount, Game.c.ACTION_MAP, Game.c.actions, Game.c.DOWN_TICK_DURATION, Game.keyPressed);
     Game.f = updateResults.newF;
     Game.finishedRowCount = updateResults.newFinishedRowCount;
     Game.grid = updateResults.newGrid;
     Game.lastDownTick = updateResults.newDownTick;
     if (Game.f.isGameOver) {
+        Game.keyPressed = new KeypressStatus();
         Game.f.isPaused = true;
         Game.f.shouldResetLastDownTick = true;
     }
@@ -515,6 +512,7 @@ Game.main = function(timeFrame) {
             Game.f
         );
     }
+    Game.keyPressed.moveCurrToPrev();
     window.requestAnimationFrame(Game.main);
 };
 
@@ -611,6 +609,14 @@ KeypressStatus.prototype.get = function(keyCode) {
         };
     }
     return this.values[keyCode];
+};
+
+KeypressStatus.prototype.moveCurrToPrev = function() {
+    for (var key in this.values) {
+        if (this.values.hasOwnProperty(key)) {
+            this.values[key]['previous'] = this.values[key]['current'];
+        }
+    }
 };
 
 Game.getGridCopy = function(inputGrid) {
