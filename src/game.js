@@ -2,6 +2,57 @@
  * Released under the GPLv3.
  */
 'use strict';
+var KeyPressed = function() {};
+
+KeyPressed.prototype._initializeKeyCode = function(keyCode) {
+    this.values[keyCode] = {
+        'previous': false,
+        'current': false
+    };
+};
+
+KeyPressed.prototype._get = function(keyCode, which) {
+    if (!(keyCode in this.values)) {
+        this._initializeKeyCode(keyCode);
+    }
+    return this.values[keyCode][which];
+};
+
+KeyPressed.prototype._set = function(keyCode, which, value) {
+    if (!(keyCode in this.values)) {
+        this._initializeKeyCode(keyCode);
+    }
+    this.values[keyCode][which] = value;
+};
+
+KeyPressed.prototype.initialize = function() {
+    this.values = {};
+};
+
+// This function is used implicitly with document.addEventListener.
+KeyPressed.prototype.handleEvent = function(e) {
+    switch(e.type) {
+        case 'keydown':
+            this._set(e.keyCode, 'current', true);
+            break;
+        case 'keyup':
+            this._set(e.keyCode, 'current', false);
+            break;
+    }
+};
+
+KeyPressed.prototype.isNewlyPressed = function(keyCode) {
+    return this._get(keyCode, 'current') && !this._get(keyCode, 'previous');
+};
+
+KeyPressed.prototype.moveCurrToPrev = function() {
+    for (var keyCode in this.values) {
+        if (this.values.hasOwnProperty(keyCode)) {
+            this.values[keyCode].previous = this.values[keyCode].current;
+        }
+    }
+};
+
 var Game = {};
 
 Game.run = function (
@@ -622,57 +673,6 @@ Game.getConstants = function(ds) {
     c.DOWN_TICK_DURATION = 500;
 
     return c;
-};
-
-var KeyPressed = function() {};
-
-KeyPressed.prototype._initializeKeyCode = function(keyCode) {
-    this.values[keyCode] = {
-        'previous': false,
-        'current': false
-    };
-};
-
-KeyPressed.prototype._get = function(keyCode, which) {
-    if (!(keyCode in this.values)) {
-        this._initializeKeyCode(keyCode);
-    }
-    return this.values[keyCode][which];
-};
-
-KeyPressed.prototype._set = function(keyCode, which, value) {
-    if (!(keyCode in this.values)) {
-        this._initializeKeyCode(keyCode);
-    }
-    this.values[keyCode][which] = value;
-};
-
-KeyPressed.prototype.initialize = function() {
-    this.values = {};
-};
-
-// This function is used implicitly with document.addEventListener.
-KeyPressed.prototype.handleEvent = function(e) {
-    switch(e.type) {
-        case 'keydown':
-            this._set(e.keyCode, 'current', true);
-            break;
-        case 'keyup':
-            this._set(e.keyCode, 'current', false);
-            break;
-    }
-};
-
-KeyPressed.prototype.isNewlyPressed = function(keyCode) {
-    return this._get(keyCode, 'current') && !this._get(keyCode, 'previous');
-};
-
-KeyPressed.prototype.moveCurrToPrev = function() {
-    for (var keyCode in this.values) {
-        if (this.values.hasOwnProperty(keyCode)) {
-            this.values[keyCode].previous = this.values[keyCode].current;
-        }
-    }
 };
 
 Game.getGridCopy = function(gridOriginal) {
