@@ -57,20 +57,20 @@ var Game = {};
 
 Game.run = function (
         canvasId, squareDim, statusBarHeight, borderLineWidth, gridLineWidth) {
-    Game.display = document.getElementById(canvasId);
+    this.display = document.getElementById(canvasId);
 
     var ds = {
         borderLineWidth: borderLineWidth,
-        displayHeight: Game.display.height,
-        displayWidth: Game.display.width,
+        displayHeight: this.display.height,
+        displayWidth: this.display.width,
         gridLineWidth: gridLineWidth,
         squareDim: squareDim,
         statusBarHeight: statusBarHeight
     };
 
-    Game.c = Game.getConstants(ds);
+    this.c = this.getConstants(ds);
 
-    Game.status = {
+    this.status = {
         isGameOver: false,
         isFirstRun: true,
         isPaused: true,
@@ -81,23 +81,23 @@ Game.run = function (
         timeFrame: null
     };
 
-    Game.grid = Game.addNewBlock(Game.c, Game.getEmptyGrid(Game.c)).grid;
+    this.grid = this.addNewBlock(this.c, this.getEmptyGrid(this.c)).grid;
 
-    Game.status = Game.draw(
-        Game.c,
-        Game.status,
-        Game.grid,
-        Game.display.getContext('2d'),
-        Game.getPauseScreenText(Game.status, Game.c.CONTROLS_TEXT),
-        Game.finishedRowCount
+    this.status = this.draw(
+        this.c,
+        this.status,
+        this.grid,
+        this.display.getContext('2d'),
+        this.getPauseScreenText(this.status, this.c.CONTROLS_TEXT),
+        this.finishedRowCount
     ).status;
 
-    Game.keyPressed = new KeyPressed();
-    Game.keyPressed.initialize();
-    document.addEventListener('keydown', Game.keyPressed, false);
-    document.addEventListener('keyup', Game.keyPressed, false);
+    this.keyPressed = new KeyPressed();
+    this.keyPressed.initialize();
+    document.addEventListener('keydown', this.keyPressed, false);
+    document.addEventListener('keyup', this.keyPressed, false);
 
-    window.requestAnimationFrame(Game.main);
+    window.requestAnimationFrame(this.main.bind(this));
 };
 
 Game.getEmptyGrid = function(c) {
@@ -122,7 +122,7 @@ Game.getEmptyGrid = function(c) {
 };
 
 Game.addNewBlock = function(c, grid_) {
-    var grid = Game.getGridCopy(grid_);
+    var grid = this.getGridCopy(grid_);
     var addBlockSuccessful = true;
     var newBlock = c.ALL_BLOCKS[
         Math.floor(Math.random() * c.ALL_BLOCKS.length)
@@ -169,7 +169,7 @@ Game.getActiveBlockCoords = function(grid) {
 
 Game.updateActiveBlockPosition = function(
         c, grid_, oldActiveCoords, newActiveCoords) {
-    var grid = Game.getGridCopy(grid_);
+    var grid = this.getGridCopy(grid_);
     var moveIsAllowed = true;
     var i;
     for (i = 0; i < newActiveCoords.length; i++) {
@@ -212,7 +212,7 @@ Game.getUpdatedCoords = function(c, oldCoords, action) {
     if (action === c.actions.CLOCKWISE) {
         newCoords = oldCoords;
         for (var j = 0; j < 3; j++) {
-            newCoords = Game.getUpdatedCoords(
+            newCoords = this.getUpdatedCoords(
                 c,
                 newCoords,
                 c.actions.COUNTERCLOCKWISE
@@ -265,9 +265,9 @@ Game.getUpdatedCoords = function(c, oldCoords, action) {
 };
 
 Game.moveActiveBlock = function(c, grid, action) {
-    var oldActiveCoords = Game.getActiveBlockCoords(grid);
-    var newActiveCoords = Game.getUpdatedCoords(c, oldActiveCoords, action);
-    var results = Game.updateActiveBlockPosition(
+    var oldActiveCoords = this.getActiveBlockCoords(grid);
+    var newActiveCoords = this.getUpdatedCoords(c, oldActiveCoords, action);
+    var results = this.updateActiveBlockPosition(
         c,
         grid,
         oldActiveCoords,
@@ -280,8 +280,8 @@ Game.moveActiveBlock = function(c, grid, action) {
 };
 
 Game.clearMatchedRows = function(c, status_, grid_) {
-    var status = Game.getStatusCopy(status_);
-    var grid = Game.getGridCopy(grid_);
+    var status = this.getStatusCopy(status_);
+    var grid = this.getGridCopy(grid_);
     var finishedRowNums = [];
     var colNum;
     for (var rowNum = 0; rowNum < grid.length; rowNum++) {
@@ -316,12 +316,12 @@ Game.clearMatchedRows = function(c, status_, grid_) {
 };
 
 Game.processActionKeys = function(c, grid_, keyPressed) {
-    var grid = Game.getGridCopy(grid_);
+    var grid = this.getGridCopy(grid_);
     for (var i = 0; i < c.ACTION_MAP.length; i++) {
         var keyCode = c.ACTION_MAP[i][0];
         var action = c.ACTION_MAP[i][1];
         if (keyPressed.isNewlyPressed(keyCode)) {
-            grid = Game.moveActiveBlock(c, grid, action).grid;
+            grid = this.moveActiveBlock(c, grid, action).grid;
             break;
         }
     }
@@ -331,12 +331,12 @@ Game.processActionKeys = function(c, grid_, keyPressed) {
 };
 
 Game.processDownTick = function(c, status_, grid_) {
-    var status = Game.getStatusCopy(status_);
-    var grid = Game.getGridCopy(grid_);
+    var status = this.getStatusCopy(status_);
+    var grid = this.getGridCopy(grid_);
     var keepGoing = true;
     if (status.timeFrame > (status.lastDownTick + c.DOWN_TICK_DURATION)) {
         status.lastDownTick = status.timeFrame;
-        var moveActiveBlockResults = Game.moveActiveBlock(
+        var moveActiveBlockResults = this.moveActiveBlock(
             c,
             grid,
             c.actions.DOWN
@@ -351,7 +351,7 @@ Game.processDownTick = function(c, status_, grid_) {
                 }
             }
 
-            var clearMatchedRowsResults = Game.clearMatchedRows(
+            var clearMatchedRowsResults = this.clearMatchedRows(
                 c,
                 status,
                 grid
@@ -359,7 +359,7 @@ Game.processDownTick = function(c, status_, grid_) {
             status = clearMatchedRowsResults.status;
             grid = clearMatchedRowsResults.grid;
 
-            var addNewBlockResults = Game.addNewBlock(c, grid);
+            var addNewBlockResults = this.addNewBlock(c, grid);
             grid = addNewBlockResults.grid;
             keepGoing = addNewBlockResults.addBlockSuccessful;
         }
@@ -372,7 +372,7 @@ Game.processDownTick = function(c, status_, grid_) {
 };
 
 Game.processPauseKey = function(c, status_, keyPressed) {
-    var status = Game.getStatusCopy(status_);
+    var status = this.getStatusCopy(status_);
     var newDownTick = status.lastDownTick;
     if (keyPressed.isNewlyPressed(c.keyCodes.SPACE)) {
         if (status.isPaused) {
@@ -395,24 +395,24 @@ Game.processPauseKey = function(c, status_, keyPressed) {
 };
 
 Game.update = function(c, status_, grid_, keyPressed) {
-    var status = Game.getStatusCopy(status_);
-    var grid = Game.getGridCopy(grid_);
-    var processPauseKeyResults = Game.processPauseKey(c, status, keyPressed);
+    var status = this.getStatusCopy(status_);
+    var grid = this.getGridCopy(grid_);
+    var processPauseKeyResults = this.processPauseKey(c, status, keyPressed);
     status = processPauseKeyResults.status;
     if (!status.isPaused) {
         if (status.isGameOver) {
             status.finishedRowCount = 0;
             status.isGameOver = false;
-            grid = Game.addNewBlock(c, Game.getEmptyGrid(c)).grid;
+            grid = this.addNewBlock(c, this.getEmptyGrid(c)).grid;
         } else {
-            var processActionKeysResults = Game.processActionKeys(
+            var processActionKeysResults = this.processActionKeys(
                 c,
                 grid,
                 keyPressed
             );
             grid = processActionKeysResults.grid;
 
-            var processDownTickResults = Game.processDownTick(c, status, grid);
+            var processDownTickResults = this.processDownTick(c, status, grid);
             status = processDownTickResults.status;
             grid = processDownTickResults.grid;
         }
@@ -537,12 +537,12 @@ Game.drawBorders = function(c, ctx) {
 };
 
 Game.draw = function (c, status_, grid, ctx, pauseScreenText) {
-    var status = Game.getStatusCopy(status_);
-    Game.drawGrid(c, grid, ctx);
-    Game.drawStatusBar(c, status, ctx);
-    Game.drawBorders(c, ctx);
+    var status = this.getStatusCopy(status_);
+    this.drawGrid(c, grid, ctx);
+    this.drawStatusBar(c, status, ctx);
+    this.drawBorders(c, ctx);
     if (status.isPaused) {
-        Game.drawPauseScreen(c, ctx, pauseScreenText);
+        this.drawPauseScreen(c, ctx, pauseScreenText);
         status.shouldRedraw = false;
     }
     return {
@@ -574,31 +574,31 @@ Game.getPauseScreenText = function(status, controlsText) {
 };
 
 Game.main = function(timeFrame) {
-    Game.status.timeFrame = timeFrame;
-    var updateResults = Game.update(
-        Game.c,
-        Game.status,
-        Game.grid,
-        Game.keyPressed
+    this.status.timeFrame = timeFrame;
+    var updateResults = this.update(
+        this.c,
+        this.status,
+        this.grid,
+        this.keyPressed
     );
-    Game.status = updateResults.status;
-    Game.grid = updateResults.grid;
-    if (Game.status.isGameOver) {
-        Game.keyPressed.initialize();
-        Game.status.isPaused = true;
-        Game.status.shouldResetLastDownTick = true;
+    this.status = updateResults.status;
+    this.grid = updateResults.grid;
+    if (this.status.isGameOver) {
+        this.keyPressed.initialize();
+        this.status.isPaused = true;
+        this.status.shouldResetLastDownTick = true;
     }
-    if (Game.status.shouldRedraw) {
-        Game.status = Game.draw(
-            Game.c,
-            Game.status,
-            Game.grid,
-            Game.display.getContext('2d'),
-            Game.getPauseScreenText(Game.status, Game.c.CONTROLS_TEXT)
+    if (this.status.shouldRedraw) {
+        this.status = this.draw(
+            this.c,
+            this.status,
+            this.grid,
+            this.display.getContext('2d'),
+            this.getPauseScreenText(this.status, this.c.CONTROLS_TEXT)
         ).status;
     }
-    Game.keyPressed.moveCurrToPrev();
-    window.requestAnimationFrame(Game.main);
+    this.keyPressed.moveCurrToPrev();
+    window.requestAnimationFrame(this.main.bind(this));
 };
 
 Game.getConstants = function(ds) {
