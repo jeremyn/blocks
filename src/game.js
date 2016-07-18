@@ -4,7 +4,8 @@
 'use strict';
 var Game = {};
 
-Game.run = function (canvasId, squareDim, statusBarHeight, borderLineWidth, gridLineWidth) {
+Game.run = function (
+        canvasId, squareDim, statusBarHeight, borderLineWidth, gridLineWidth) {
     Game.display = document.getElementById(canvasId);
 
     var ds = {
@@ -31,7 +32,14 @@ Game.run = function (canvasId, squareDim, statusBarHeight, borderLineWidth, grid
 
     Game.grid = Game.addNewBlock(Game.c, Game.getEmptyGrid(Game.c)).grid;
 
-    Game.status = Game.draw(Game.c, Game.status, Game.grid, Game.display.getContext('2d'), Game.getPauseScreenText(Game.status, Game.c.CONTROLS_TEXT), Game.finishedRowCount).status;
+    Game.status = Game.draw(
+        Game.c,
+        Game.status,
+        Game.grid,
+        Game.display.getContext('2d'),
+        Game.getPauseScreenText(Game.status, Game.c.CONTROLS_TEXT),
+        Game.finishedRowCount
+    ).status;
 
     Game.keyPressed = new KeyPressed();
     Game.keyPressed.initialize();
@@ -65,16 +73,20 @@ Game.getEmptyGrid = function(c) {
 Game.addNewBlock = function(c, grid_) {
     var grid = Game.getGridCopy(grid_);
     var addBlockSuccessful = true;
-    var newBlock = c.ALL_BLOCKS[Math.floor(Math.random() * c.ALL_BLOCKS.length)];
-    var startColNum = (grid[0].length / 2) - Math.floor((newBlock[0].length / 2));
+    var newBlock = c.ALL_BLOCKS[
+        Math.floor(Math.random() * c.ALL_BLOCKS.length)
+    ];
+    var startColNum = (
+        (grid[0].length / 2) - Math.floor(newBlock[0].length / 2)
+    );
     for (var rowNum = 0; rowNum < newBlock.length; rowNum++) {
         for (var colNum = 0; colNum < newBlock[0].length; colNum++) {
             var gridCell = grid[rowNum][startColNum + colNum];
             var blockCellState = newBlock[rowNum][colNum];
             if (blockCellState !== c.colors.EMPTY) {
-                if (gridCell['state'] === c.colors.EMPTY) {
-                    gridCell['state'] = blockCellState;
-                    gridCell['isActive'] = true;
+                if (gridCell.state === c.colors.EMPTY) {
+                    gridCell.state = blockCellState;
+                    gridCell.isActive = true;
                 } else {
                     addBlockSuccessful = false;
                     break;
@@ -96,25 +108,27 @@ Game.getActiveBlockCoords = function(grid) {
     var activeBlockCoords = [];
     for (var rowNum = 0; rowNum < grid.length; rowNum++) {
         for (var colNum = 0; colNum < grid[0].length; colNum++) {
-            if (grid[rowNum][colNum]['isActive']) {
-                activeBlockCoords.push([rowNum, colNum])
+            if (grid[rowNum][colNum].isActive) {
+                activeBlockCoords.push([rowNum, colNum]);
             }
         }
     }
     return activeBlockCoords;
 };
 
-Game.updateActiveBlockPosition = function(c, grid_, oldActiveCoords, newActiveCoords) {
+Game.updateActiveBlockPosition = function(
+        c, grid_, oldActiveCoords, newActiveCoords) {
     var grid = Game.getGridCopy(grid_);
     var moveIsAllowed = true;
-    for (var i = 0; i < newActiveCoords.length; i++) {
+    var i;
+    for (i = 0; i < newActiveCoords.length; i++) {
         var newCoord = newActiveCoords[i];
         moveIsAllowed = (
             (0 <= newCoord[0]) && (newCoord[0] < grid.length) &&
             (0 <= newCoord[1]) && (newCoord[1] < grid[0].length) &&
             (
-                (grid[newCoord[0]][newCoord[1]]['isActive'] === true) ||
-                (grid[newCoord[0]][newCoord[1]]['state'] === c.colors.EMPTY)
+                (grid[newCoord[0]][newCoord[1]].isActive === true) ||
+                (grid[newCoord[0]][newCoord[1]].state === c.colors.EMPTY)
             )
         );
         if (!moveIsAllowed) {
@@ -123,14 +137,17 @@ Game.updateActiveBlockPosition = function(c, grid_, oldActiveCoords, newActiveCo
     }
 
     if (moveIsAllowed) {
-        var state = grid[oldActiveCoords[0][0]][oldActiveCoords[0][1]]['state'];
-        for (var i = 0; i < oldActiveCoords.length; i++) {
-            grid[oldActiveCoords[i][0]][oldActiveCoords[i][1]]['state'] = c.colors.EMPTY;
-            grid[oldActiveCoords[i][0]][oldActiveCoords[i][1]]['isActive'] = false;
+        var gridCell = grid[oldActiveCoords[0][0]][oldActiveCoords[0][1]];
+        var state = gridCell.state;
+        for (i = 0; i < oldActiveCoords.length; i++) {
+            gridCell = grid[oldActiveCoords[i][0]][oldActiveCoords[i][1]];
+            gridCell.state = c.colors.EMPTY;
+            gridCell.isActive = false;
         }
-        for (var i = 0; i < newActiveCoords.length; i++) {
-            grid[newActiveCoords[i][0]][newActiveCoords[i][1]]['state'] = state;
-            grid[newActiveCoords[i][0]][newActiveCoords[i][1]]['isActive'] = true;
+        for (i = 0; i < newActiveCoords.length; i++) {
+            gridCell = grid[newActiveCoords[i][0]][newActiveCoords[i][1]];
+            gridCell.state = state;
+            gridCell.isActive = true;
         }
     }
     return {
@@ -144,12 +161,17 @@ Game.getUpdatedCoords = function(c, oldCoords, action) {
     if (action === c.actions.CLOCKWISE) {
         newCoords = oldCoords;
         for (var j = 0; j < 3; j++) {
-            newCoords = Game.getUpdatedCoords(c, newCoords, c.actions.COUNTERCLOCKWISE);
+            newCoords = Game.getUpdatedCoords(
+                c,
+                newCoords,
+                c.actions.COUNTERCLOCKWISE
+            );
         }
     } else {
         var rows = oldCoords.map(function(c) { return c[0]; });
         rows.sort(function(a,b){ return a-b; });
         var minRow = rows[0];
+        var maxRow = rows[rows.length-1];
 
         var cols = oldCoords.map(function(c) { return c[1]; });
         cols.sort(function(a,b){ return a-b; });
@@ -176,9 +198,9 @@ Game.getUpdatedCoords = function(c, oldCoords, action) {
                 newCol = minCol+(oldRow-minRow);
 
                 // adjust behavior for straight-block
-                if (new Set(rows).size === 1) {
+                if (minRow === maxRow) {
                     newCol++;
-                } else if (new Set(cols).size === 1) {
+                } else if (minCol === maxCol) {
                     newCol--;
                 }
             } else if (action === c.actions.REFLECT) {
@@ -194,34 +216,43 @@ Game.getUpdatedCoords = function(c, oldCoords, action) {
 Game.moveActiveBlock = function(c, grid, action) {
     var oldActiveCoords = Game.getActiveBlockCoords(grid);
     var newActiveCoords = Game.getUpdatedCoords(c, oldActiveCoords, action);
-    var results = Game.updateActiveBlockPosition(c, grid, oldActiveCoords, newActiveCoords);
+    var results = Game.updateActiveBlockPosition(
+        c,
+        grid,
+        oldActiveCoords,
+        newActiveCoords
+    );
     return {
         moveIsAllowed: results.moveIsAllowed,
         grid: results.grid
-    }
+    };
 };
 
 Game.clearMatchedRows = function(c, status_, grid_) {
     var status = Game.getStatusCopy(status_);
     var grid = Game.getGridCopy(grid_);
     var finishedRowNums = [];
+    var colNum;
     for (var rowNum = 0; rowNum < grid.length; rowNum++) {
-        var emptyCols = grid[rowNum].filter(function(col) {
-            return col['state'] === c.colors.EMPTY;
-        });
+        var emptyCols = [];
+        for (colNum = 0; colNum < grid[rowNum].length; colNum++) {
+            if (grid[rowNum][colNum].state === c.colors.EMPTY) {
+                emptyCols.push(colNum);
+            }
+        }
         if (emptyCols.length === 0) {
             finishedRowNums.push(rowNum);
         }
     }
     for (var i = 0; i < finishedRowNums.length; i++) {
         var finishedRowNum = finishedRowNums[i];
-        for (var colNum = 0; colNum < grid[0].length; colNum++) {
-            grid[finishedRowNum][colNum]['state'] = c.colors.EMPTY;
+        for (colNum = 0; colNum < grid[0].length; colNum++) {
+            grid[finishedRowNum][colNum].state = c.colors.EMPTY;
         }
         for (rowNum = finishedRowNum-1; rowNum >= 0; rowNum--) {
             for (colNum = 0; colNum < grid[0].length; colNum++) {
-                grid[rowNum+1][colNum]['state'] = grid[rowNum][colNum]['state'];
-                grid[rowNum][colNum]['state'] = c.colors.EMPTY;
+                grid[rowNum+1][colNum].state = grid[rowNum][colNum].state;
+                grid[rowNum][colNum].state = c.colors.EMPTY;
             }
         }
     }
@@ -230,7 +261,7 @@ Game.clearMatchedRows = function(c, status_, grid_) {
     return {
         status: status,
         grid: grid
-    }
+    };
 };
 
 Game.processActionKeys = function(c, grid_, keyPressed) {
@@ -254,18 +285,26 @@ Game.processDownTick = function(c, status_, grid_) {
     var keepGoing = true;
     if (status.timeFrame > (status.lastDownTick + c.DOWN_TICK_DURATION)) {
         status.lastDownTick = status.timeFrame;
-        var moveActiveBlockResults = Game.moveActiveBlock(c, grid, c.actions.DOWN);
+        var moveActiveBlockResults = Game.moveActiveBlock(
+            c,
+            grid,
+            c.actions.DOWN
+        );
         var moveWorked = moveActiveBlockResults.moveIsAllowed;
         grid = moveActiveBlockResults.grid;
 
         if (!moveWorked) {
             for (var rowNum = 0; rowNum < grid.length; rowNum++) {
                 for (var colNum = 0; colNum < grid[0].length; colNum++) {
-                    grid[rowNum][colNum]['isActive'] = false;
+                    grid[rowNum][colNum].isActive = false;
                 }
             }
 
-            var clearMatchedRowsResults = Game.clearMatchedRows(c, status, grid);
+            var clearMatchedRowsResults = Game.clearMatchedRows(
+                c,
+                status,
+                grid
+            );
             status = clearMatchedRowsResults.status;
             grid = clearMatchedRowsResults.grid;
 
@@ -301,7 +340,7 @@ Game.processPauseKey = function(c, status_, keyPressed) {
     status.lastDownTick = newDownTick;
     return {
         status: status
-    }
+    };
 };
 
 Game.update = function(c, status_, grid_, keyPressed) {
@@ -315,7 +354,11 @@ Game.update = function(c, status_, grid_, keyPressed) {
             status.isGameOver = false;
             grid = Game.addNewBlock(c, Game.getEmptyGrid(c)).grid;
         } else {
-            var processActionKeysResults = Game.processActionKeys(c, grid, keyPressed);
+            var processActionKeysResults = Game.processActionKeys(
+                c,
+                grid,
+                keyPressed
+            );
             grid = processActionKeysResults.grid;
 
             var processDownTickResults = Game.processDownTick(c, status, grid);
@@ -331,13 +374,25 @@ Game.update = function(c, status_, grid_, keyPressed) {
 
 Game.drawPauseScreen = function(c, ctx, pauseScreenText) {
     ctx.fillStyle = "rgba(0, 0, 0, 0.0)";
-    ctx.fillRect(0, 0, c.ds.displayWidth, c.ds.displayHeight - c.ds.statusBarHeight);
+    ctx.fillRect(
+        0,
+        0,
+        c.ds.displayWidth,
+        c.ds.displayHeight - c.ds.statusBarHeight
+    );
     ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
-    ctx.fillRect(0, 0, c.ds.displayWidth, c.ds.displayHeight - c.ds.statusBarHeight);
+    ctx.fillRect(
+        0,
+        0,
+        c.ds.displayWidth,
+        c.ds.displayHeight - c.ds.statusBarHeight
+    );
 
     var fontHeight = 0.5 * c.ds.statusBarHeight;
     var pauseBoxHeight = 1.05 * fontHeight * (pauseScreenText.length + 0.5);
-    var pauseBoxStartRow = 0.5 * (c.ds.displayHeight - c.ds.statusBarHeight - pauseBoxHeight);
+    var pauseBoxStartRow = (
+        0.5 * (c.ds.displayHeight - c.ds.statusBarHeight - pauseBoxHeight)
+    );
 
     ctx.fillStyle = c.colors.EMPTY;
     ctx.strokeStyle = c.colors.BORDER;
@@ -372,7 +427,7 @@ Game.drawGrid = function(c, grid, ctx) {
     ctx.strokeStyle = c.colors.BORDER;
     for (var rowNum = 0; rowNum < grid.length; rowNum++) {
         for (var colNum = 0; colNum < grid[0].length; colNum++) {
-            ctx.fillStyle = grid[rowNum][colNum]['state'];
+            ctx.fillStyle = grid[rowNum][colNum].state;
             ctx.fillRect(
                 colNum * c.ds.squareDim,
                 rowNum * c.ds.squareDim,
@@ -460,7 +515,12 @@ Game.getPauseScreenText = function(status, controlsText) {
 
 Game.main = function(timeFrame) {
     Game.status.timeFrame = timeFrame;
-    var updateResults = Game.update(Game.c, Game.status, Game.grid, Game.keyPressed);
+    var updateResults = Game.update(
+        Game.c,
+        Game.status,
+        Game.grid,
+        Game.keyPressed
+    );
     Game.status = updateResults.status;
     Game.grid = updateResults.grid;
     if (Game.status.isGameOver) {
@@ -469,7 +529,13 @@ Game.main = function(timeFrame) {
         Game.status.shouldResetLastDownTick = true;
     }
     if (Game.status.shouldRedraw) {
-        Game.status = Game.draw(Game.c, Game.status, Game.grid, Game.display.getContext('2d'), Game.getPauseScreenText(Game.status, Game.c.CONTROLS_TEXT)).status;
+        Game.status = Game.draw(
+            Game.c,
+            Game.status,
+            Game.grid,
+            Game.display.getContext('2d'),
+            Game.getPauseScreenText(Game.status, Game.c.CONTROLS_TEXT)
+        ).status;
     }
     Game.keyPressed.moveCurrToPrev();
     window.requestAnimationFrame(Game.main);
@@ -521,24 +587,24 @@ Game.getConstants = function(ds) {
     c.colors = {
         BORDER: 'black',
         EMPTY: 'white',
+        I: 'fuchsia',
         L: 'silver',
-        SQUARE: 'red',
-        STRAIGHT: 'fuchsia',
+        O: 'red',
         T: 'lime',
         Z: 'aqua'
     };
 
     c.ALL_BLOCKS = [
         [
+            [c.colors.I, c.colors.I, c.colors.I, c.colors.I]
+        ],
+        [
             [c.colors.L, c.colors.L, c.colors.L],
             [c.colors.L, c.colors.EMPTY, c.colors.EMPTY]
         ],
         [
-            [c.colors.SQUARE, c.colors.SQUARE],
-            [c.colors.SQUARE, c.colors.SQUARE]
-        ],
-        [
-            [c.colors.STRAIGHT, c.colors.STRAIGHT, c.colors.STRAIGHT, c.colors.STRAIGHT]
+            [c.colors.O, c.colors.O],
+            [c.colors.O, c.colors.O]
         ],
         [
             [c.colors.T, c.colors.T, c.colors.T],
@@ -604,7 +670,7 @@ KeyPressed.prototype.isNewlyPressed = function(keyCode) {
 KeyPressed.prototype.moveCurrToPrev = function() {
     for (var keyCode in this.values) {
         if (this.values.hasOwnProperty(keyCode)) {
-            this.values[keyCode]['previous'] = this.values[keyCode]['current'];
+            this.values[keyCode].previous = this.values[keyCode].current;
         }
     }
 };
@@ -615,8 +681,8 @@ Game.getGridCopy = function(gridOriginal) {
         var outputRow = [];
         for (var colNum = 0; colNum < gridOriginal[rowNum].length; colNum++) {
             outputRow.push({
-                state: gridOriginal[rowNum][colNum]['state'],
-                isActive: gridOriginal[rowNum][colNum]['isActive']
+                state: gridOriginal[rowNum][colNum].state,
+                isActive: gridOriginal[rowNum][colNum].isActive
             });
         }
         gridCopy.push(outputRow);
