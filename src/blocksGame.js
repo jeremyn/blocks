@@ -2,35 +2,36 @@
  * Released under the GPLv3.
  */
 'use strict';
-var KeyPressed = function() {};
+var blocksGame = {};
+blocksGame.KeyPressedClass = function() {};
 
-KeyPressed.prototype._initializeKeyCode = function(keyCode) {
+blocksGame.KeyPressedClass.prototype._initializeKeyCode = function(keyCode) {
     this.values[keyCode] = {
         'previous': false,
         'current': false
     };
 };
 
-KeyPressed.prototype._get = function(keyCode, which) {
+blocksGame.KeyPressedClass.prototype._get = function(keyCode, which) {
     if (!(keyCode in this.values)) {
         this._initializeKeyCode(keyCode);
     }
     return this.values[keyCode][which];
 };
 
-KeyPressed.prototype._set = function(keyCode, which, value) {
+blocksGame.KeyPressedClass.prototype._set = function(keyCode, which, value) {
     if (!(keyCode in this.values)) {
         this._initializeKeyCode(keyCode);
     }
     this.values[keyCode][which] = value;
 };
 
-KeyPressed.prototype.initialize = function() {
+blocksGame.KeyPressedClass.prototype.initialize = function() {
     this.values = {};
 };
 
 // This function is used implicitly with document.addEventListener.
-KeyPressed.prototype.handleEvent = function(e) {
+blocksGame.KeyPressedClass.prototype.handleEvent = function(e) {
     switch(e.type) {
         case 'keydown':
             this._set(e.keyCode, 'current', true);
@@ -41,19 +42,17 @@ KeyPressed.prototype.handleEvent = function(e) {
     }
 };
 
-KeyPressed.prototype.isNewlyPressed = function(keyCode) {
+blocksGame.KeyPressedClass.prototype.isNewlyPressed = function(keyCode) {
     return this._get(keyCode, 'current') && !this._get(keyCode, 'previous');
 };
 
-KeyPressed.prototype.moveCurrToPrev = function() {
+blocksGame.KeyPressedClass.prototype.moveCurrToPrev = function() {
     for (var keyCode in this.values) {
         if (this.values.hasOwnProperty(keyCode)) {
             this.values[keyCode].previous = this.values[keyCode].current;
         }
     }
 };
-
-var blocksGame = {};
 
 blocksGame.run = function (
         canvasId, squareDim, statusBarHeight, borderLineWidth, gridLineWidth) {
@@ -91,7 +90,7 @@ blocksGame.run = function (
         this.getPauseScreenText(this.status, this.c.CONTROLS_TEXT)
     ).status;
 
-    this.keyPressed = new KeyPressed();
+    this.keyPressed = new this.KeyPressedClass();
     this.keyPressed.initialize();
     document.addEventListener('keydown', this.keyPressed, false);
     document.addEventListener('keyup', this.keyPressed, false);
