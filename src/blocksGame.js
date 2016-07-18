@@ -5,55 +5,6 @@
 var blocksGame = {};
 blocksGame.KeyPressedClass = function() {};
 
-blocksGame.KeyPressedClass.prototype._initializeKeyCode = function(keyCode) {
-    this.values[keyCode] = {
-        'previous': false,
-        'current': false
-    };
-};
-
-blocksGame.KeyPressedClass.prototype._get = function(keyCode, which) {
-    if (!(keyCode in this.values)) {
-        this._initializeKeyCode(keyCode);
-    }
-    return this.values[keyCode][which];
-};
-
-blocksGame.KeyPressedClass.prototype._set = function(keyCode, which, value) {
-    if (!(keyCode in this.values)) {
-        this._initializeKeyCode(keyCode);
-    }
-    this.values[keyCode][which] = value;
-};
-
-blocksGame.KeyPressedClass.prototype.initialize = function() {
-    this.values = {};
-};
-
-// This function is used implicitly with document.addEventListener.
-blocksGame.KeyPressedClass.prototype.handleEvent = function(e) {
-    switch(e.type) {
-        case 'keydown':
-            this._set(e.keyCode, 'current', true);
-            break;
-        case 'keyup':
-            this._set(e.keyCode, 'current', false);
-            break;
-    }
-};
-
-blocksGame.KeyPressedClass.prototype.isNewlyPressed = function(keyCode) {
-    return this._get(keyCode, 'current') && !this._get(keyCode, 'previous');
-};
-
-blocksGame.KeyPressedClass.prototype.moveCurrToPrev = function() {
-    for (var keyCode in this.values) {
-        if (this.values.hasOwnProperty(keyCode)) {
-            this.values[keyCode].previous = this.values[keyCode].current;
-        }
-    }
-};
-
 blocksGame.run = function (
         canvasId, squareDim, statusBarHeight, borderLineWidth, gridLineWidth) {
     this.display = document.getElementById(canvasId);
@@ -708,4 +659,53 @@ blocksGame.getStatusCopy = function(status) {
         lastDownTick: status.lastDownTick,
         timeFrame: status.timeFrame
     };
+};
+
+blocksGame.KeyPressedClass.prototype._initializeKeyCode = function(keyCode) {
+    this.values[keyCode] = {
+        'previous': false,
+        'current': false
+    };
+};
+
+blocksGame.KeyPressedClass.prototype._get = function(keyCode, which) {
+    if (!(keyCode in this.values)) {
+        this._initializeKeyCode(keyCode);
+    }
+    return this.values[keyCode][which];
+};
+
+blocksGame.KeyPressedClass.prototype._set = function(keyCode, which, value) {
+    if (!(keyCode in this.values)) {
+        this._initializeKeyCode(keyCode);
+    }
+    this.values[keyCode][which] = value;
+};
+
+blocksGame.KeyPressedClass.prototype.initialize = function() {
+    this.values = {};
+};
+
+// This function is used implicitly with document.addEventListener.
+blocksGame.KeyPressedClass.prototype.handleEvent = function(e) {
+    switch(e.type) {
+        case 'keydown':
+            this._set(e.keyCode, 'current', true);
+            break;
+        case 'keyup':
+            this._set(e.keyCode, 'current', false);
+            break;
+    }
+};
+
+blocksGame.KeyPressedClass.prototype.isNewlyPressed = function(keyCode) {
+    return this._get(keyCode, 'current') && !this._get(keyCode, 'previous');
+};
+
+blocksGame.KeyPressedClass.prototype.moveCurrToPrev = function() {
+    for (var keyCode in this.values) {
+        if (this.values.hasOwnProperty(keyCode)) {
+            this.values[keyCode].previous = this.values[keyCode].current;
+        }
+    }
 };
