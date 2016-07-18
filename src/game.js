@@ -53,9 +53,9 @@ KeyPressed.prototype.moveCurrToPrev = function() {
     }
 };
 
-var Game = {};
+var blocksGame = {};
 
-Game.run = function (
+blocksGame.run = function (
         canvasId, squareDim, statusBarHeight, borderLineWidth, gridLineWidth) {
     this.display = document.getElementById(canvasId);
 
@@ -99,7 +99,7 @@ Game.run = function (
     window.requestAnimationFrame(this.main.bind(this));
 };
 
-Game.getEmptyGrid = function(c) {
+blocksGame.getEmptyGrid = function(c) {
     var numRows = (c.ds.displayHeight - c.ds.statusBarHeight) / c.ds.squareDim;
     var numCols = c.ds.displayWidth / c.ds.squareDim;
     if ((numRows % 2 !== 0) || (numCols % 2 !== 0)) {
@@ -120,7 +120,7 @@ Game.getEmptyGrid = function(c) {
     return grid;
 };
 
-Game.addNewBlock = function(c, grid_) {
+blocksGame.addNewBlock = function(c, grid_) {
     var grid = this.getGridCopy(grid_);
     var addBlockSuccessful = true;
     var newBlock = c.ALL_BLOCKS[
@@ -154,7 +154,7 @@ Game.addNewBlock = function(c, grid_) {
     };
 };
 
-Game.getActiveBlockCoords = function(grid) {
+blocksGame.getActiveBlockCoords = function(grid) {
     var activeBlockCoords = [];
     for (var rowNum = 0; rowNum < grid.length; rowNum++) {
         for (var colNum = 0; colNum < grid[0].length; colNum++) {
@@ -166,7 +166,7 @@ Game.getActiveBlockCoords = function(grid) {
     return activeBlockCoords;
 };
 
-Game.updateActiveBlockPosition = function(
+blocksGame.updateActiveBlockPosition = function(
         c, grid_, oldActiveCoords, newActiveCoords) {
     var grid = this.getGridCopy(grid_);
     var moveIsAllowed = true;
@@ -206,7 +206,7 @@ Game.updateActiveBlockPosition = function(
     };
 };
 
-Game.getUpdatedCoords = function(c, oldCoords, action) {
+blocksGame.getUpdatedCoords = function(c, oldCoords, action) {
     var newCoords;
     if (action === c.actions.CLOCKWISE) {
         newCoords = oldCoords;
@@ -263,7 +263,7 @@ Game.getUpdatedCoords = function(c, oldCoords, action) {
     return newCoords;
 };
 
-Game.moveActiveBlock = function(c, grid, action) {
+blocksGame.moveActiveBlock = function(c, grid, action) {
     var oldActiveCoords = this.getActiveBlockCoords(grid);
     var newActiveCoords = this.getUpdatedCoords(c, oldActiveCoords, action);
     var results = this.updateActiveBlockPosition(
@@ -278,7 +278,7 @@ Game.moveActiveBlock = function(c, grid, action) {
     };
 };
 
-Game.clearMatchedRows = function(c, status_, grid_) {
+blocksGame.clearMatchedRows = function(c, status_, grid_) {
     var status = this.getStatusCopy(status_);
     var grid = this.getGridCopy(grid_);
     var finishedRowNums = [];
@@ -314,7 +314,7 @@ Game.clearMatchedRows = function(c, status_, grid_) {
     };
 };
 
-Game.processActionKeys = function(c, grid_, keyPressed) {
+blocksGame.processActionKeys = function(c, grid_, keyPressed) {
     var grid = this.getGridCopy(grid_);
     for (var i = 0; i < c.ACTION_MAP.length; i++) {
         var keyCode = c.ACTION_MAP[i][0];
@@ -329,7 +329,7 @@ Game.processActionKeys = function(c, grid_, keyPressed) {
     };
 };
 
-Game.processDownTick = function(c, status_, grid_) {
+blocksGame.processDownTick = function(c, status_, grid_) {
     var status = this.getStatusCopy(status_);
     var grid = this.getGridCopy(grid_);
     var keepGoing = true;
@@ -370,7 +370,7 @@ Game.processDownTick = function(c, status_, grid_) {
     };
 };
 
-Game.processPauseKey = function(c, status_, keyPressed) {
+blocksGame.processPauseKey = function(c, status_, keyPressed) {
     var status = this.getStatusCopy(status_);
     var newDownTick = status.lastDownTick;
     if (keyPressed.isNewlyPressed(c.keyCodes.SPACE)) {
@@ -393,7 +393,7 @@ Game.processPauseKey = function(c, status_, keyPressed) {
     };
 };
 
-Game.update = function(c, status_, grid_, keyPressed) {
+blocksGame.update = function(c, status_, grid_, keyPressed) {
     var status = this.getStatusCopy(status_);
     var grid = this.getGridCopy(grid_);
     var processPauseKeyResults = this.processPauseKey(c, status, keyPressed);
@@ -422,7 +422,7 @@ Game.update = function(c, status_, grid_, keyPressed) {
     };
 };
 
-Game.drawPauseScreen = function(c, ctx, pauseScreenText) {
+blocksGame.drawPauseScreen = function(c, ctx, pauseScreenText) {
     ctx.fillStyle = "rgba(0, 0, 0, 0.0)";
     ctx.fillRect(
         0,
@@ -472,7 +472,7 @@ Game.drawPauseScreen = function(c, ctx, pauseScreenText) {
     }
 };
 
-Game.drawGrid = function(c, grid, ctx) {
+blocksGame.drawGrid = function(c, grid, ctx) {
     ctx.lineWidth = c.ds.gridLineWidth;
     ctx.strokeStyle = c.colors.BORDER;
     var rowNum;
@@ -503,7 +503,7 @@ Game.drawGrid = function(c, grid, ctx) {
     }
 };
 
-Game.drawStatusBar = function(c, status, ctx) {
+blocksGame.drawStatusBar = function(c, status, ctx) {
     ctx.fillStyle = c.colors.EMPTY;
     ctx.fillRect(
         0,
@@ -523,7 +523,7 @@ Game.drawStatusBar = function(c, status, ctx) {
     );
 };
 
-Game.drawBorders = function(c, ctx) {
+blocksGame.drawBorders = function(c, ctx) {
     ctx.strokeStyle = c.colors.BORDER;
     ctx.lineWidth = c.ds.borderLineWidth;
     ctx.strokeRect(0, 0, c.ds.displayWidth, c.ds.displayHeight);
@@ -535,7 +535,7 @@ Game.drawBorders = function(c, ctx) {
     ctx.stroke();
 };
 
-Game.draw = function (c, status_, grid, ctx, pauseScreenText) {
+blocksGame.draw = function (c, status_, grid, ctx, pauseScreenText) {
     var status = this.getStatusCopy(status_);
     this.drawGrid(c, grid, ctx);
     this.drawStatusBar(c, status, ctx);
@@ -549,7 +549,7 @@ Game.draw = function (c, status_, grid, ctx, pauseScreenText) {
     };
 };
 
-Game.getPauseScreenText = function(status, controlsText) {
+blocksGame.getPauseScreenText = function(status, controlsText) {
     var pauseHeaderText;
     if (status.isFirstRun) {
         pauseHeaderText = [
@@ -572,7 +572,7 @@ Game.getPauseScreenText = function(status, controlsText) {
     return pauseHeaderText.concat(controlsText);
 };
 
-Game.main = function(timeFrame) {
+blocksGame.main = function(timeFrame) {
     this.status.timeFrame = timeFrame;
     var updateResults = this.update(
         this.c,
@@ -600,7 +600,7 @@ Game.main = function(timeFrame) {
     window.requestAnimationFrame(this.main.bind(this));
 };
 
-Game.getConstants = function(ds) {
+blocksGame.getConstants = function(ds) {
     var c = {};
 
     c.ds = ds;
@@ -683,7 +683,7 @@ Game.getConstants = function(ds) {
     return c;
 };
 
-Game.getGridCopy = function(gridOriginal) {
+blocksGame.getGridCopy = function(gridOriginal) {
     var gridCopy = [];
     for (var rowNum = 0; rowNum < gridOriginal.length; rowNum++) {
         var outputRow = [];
@@ -698,7 +698,7 @@ Game.getGridCopy = function(gridOriginal) {
     return gridCopy;
 };
 
-Game.getStatusCopy = function(status) {
+blocksGame.getStatusCopy = function(status) {
     return {
         isGameOver: status.isGameOver,
         isFirstRun: status.isFirstRun,
