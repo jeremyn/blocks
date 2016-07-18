@@ -88,8 +88,7 @@ Game.run = function (
         this.status,
         this.grid,
         this.display.getContext('2d'),
-        this.getPauseScreenText(this.status, this.c.CONTROLS_TEXT),
-        this.finishedRowCount
+        this.getPauseScreenText(this.status, this.c.CONTROLS_TEXT)
     ).status;
 
     this.keyPressed = new KeyPressed();
