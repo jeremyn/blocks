@@ -476,8 +476,10 @@ Game.drawPauseScreen = function(c, ctx, pauseScreenText) {
 Game.drawGrid = function(c, grid, ctx) {
     ctx.lineWidth = c.ds.gridLineWidth;
     ctx.strokeStyle = c.colors.BORDER;
-    for (var rowNum = 0; rowNum < grid.length; rowNum++) {
-        for (var colNum = 0; colNum < grid[0].length; colNum++) {
+    var rowNum;
+    var colNum;
+    for (rowNum = 0; rowNum < grid.length; rowNum++) {
+        for (colNum = 0; colNum < grid[0].length; colNum++) {
             ctx.fillStyle = grid[rowNum][colNum].state;
             ctx.fillRect(
                 colNum * c.ds.squareDim,
@@ -485,12 +487,19 @@ Game.drawGrid = function(c, grid, ctx) {
                 c.ds.squareDim,
                 c.ds.squareDim
             );
-            ctx.strokeRect(
-                colNum * c.ds.squareDim,
-                rowNum * c.ds.squareDim,
-                c.ds.squareDim,
-                c.ds.squareDim
-            );
+        }
+    }
+    // The borders look better if they are drawn after all cells are filled.
+    for (rowNum = 0; rowNum < grid.length; rowNum++) {
+        for (colNum = 0; colNum < grid[0].length; colNum++) {
+            if (grid[rowNum][colNum].state !== c.colors.EMPTY) {
+                ctx.strokeRect(
+                    colNum * c.ds.squareDim,
+                    rowNum * c.ds.squareDim,
+                    c.ds.squareDim,
+                    c.ds.squareDim
+                );
+            }
         }
     }
 };
