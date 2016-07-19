@@ -282,7 +282,6 @@ blocksGame.processActionKeys = function(c, grid_, keyPressed) {
 blocksGame.processDownTick = function(c, status_, grid_) {
     var status = this.getStatusCopy(status_);
     var grid = this.getGridCopy(grid_);
-    var keepGoing = true;
 
     var moveActiveBlockResults = this.moveActiveBlock(
         c,
@@ -309,9 +308,8 @@ blocksGame.processDownTick = function(c, status_, grid_) {
 
         var addNewBlockResults = this.addNewBlock(c, grid);
         grid = addNewBlockResults.grid;
-        keepGoing = addNewBlockResults.addBlockSuccessful;
+        status.isGameOver = !addNewBlockResults.addBlockSuccessful;
     }
-    status.isGameOver = !keepGoing;
     return {
         status: status,
         grid: grid
