@@ -11,22 +11,17 @@ blocksGame.run = function (
         downTickDurationMax, downTickDurationDelta, downTickDurationMin) {
     this.display = document.getElementById(canvasId);
 
-    var ds = {
-        borderLineWidth: borderLineWidth,
-        displayHeight: this.display.height,
-        displayWidth: this.display.width,
-        gridLineWidth: gridLineWidth,
-        squareDim: squareDim,
-        statusBarHeight: statusBarHeight
-    };
-
-    var downTickDuration = {
-        MAX: downTickDurationMax,
-        DELTA: downTickDurationDelta,
-        MIN: downTickDurationMin
-    };
-
-    this.c = this.getConstants(ds, downTickDuration);
+    this.c = this.getConstants(
+        this.display.height,
+        this.display.width,
+        squareDim,
+        statusBarHeight,
+        borderLineWidth,
+        gridLineWidth,
+        downTickDurationMax,
+        downTickDurationDelta,
+        downTickDurationMin
+    );
 
     this.status = {
         isGameOver: false,
@@ -568,10 +563,32 @@ blocksGame.main = function(timeFrame) {
     window.requestAnimationFrame(this.main.bind(this));
 };
 
-blocksGame.getConstants = function(ds, downTickDuration) {
+blocksGame.getConstants = function(
+        displayHeight,
+        displayWidth,
+        squareDim,
+        statusBarHeight,
+        borderLineWidth,
+        gridLineWidth,
+        downTickDurationMax,
+        downTickDurationDelta,
+        downTickDurationMin) {
     var c = {};
 
-    c.ds = ds;
+    c.ds = {
+        displayHeight: displayHeight,
+        displayWidth: displayWidth,
+        squareDim: squareDim,
+        statusBarHeight: statusBarHeight,
+        borderLineWidth: borderLineWidth,
+        gridLineWidth: gridLineWidth
+    };
+
+    c.downTickDuration = {
+        MAX: downTickDurationMax,
+        DELTA: downTickDurationDelta,
+        MIN: downTickDurationMin
+    };
 
     c.keyCodes = {
         SPACE: 32,
@@ -644,9 +661,6 @@ blocksGame.getConstants = function(ds, downTickDuration) {
     ];
 
     c.FONT_SUFFIX = 'px serif';
-
-    // in milliseconds
-    c.downTickDuration = downTickDuration;
 
     return c;
 };
