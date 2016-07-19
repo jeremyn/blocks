@@ -583,8 +583,10 @@ blocksGame.getConstants = function(
         downTickDurationMax,
         downTickDurationDelta,
         downTickDurationMin) {
+    // 'c' for constants
     var c = {};
 
+    // 'ds' for display settings
     c.ds = {
         DISPLAY_HEIGHT: displayHeight,
         DISPLAY_WIDTH: displayWidth,
@@ -594,6 +596,7 @@ blocksGame.getConstants = function(
         GRID_LINE_WIDTH: gridLineWidth
     };
 
+    // in milliseconds
     c.downTickDuration = {
         MAX: downTickDurationMax,
         DELTA: downTickDurationDelta,
