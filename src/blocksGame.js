@@ -6,7 +6,9 @@ var blocksGame = {};
 blocksGame.KeyPressedClass = function() {};
 
 blocksGame.run = function (
-        canvasId, squareDim, statusBarHeight, borderLineWidth, gridLineWidth) {
+        canvasId,
+        squareDim, statusBarHeight, borderLineWidth, gridLineWidth,
+        downTickDurationMax, downTickDurationDelta, downTickDurationMin) {
     this.display = document.getElementById(canvasId);
 
     var ds = {
@@ -18,7 +20,13 @@ blocksGame.run = function (
         statusBarHeight: statusBarHeight
     };
 
-    this.c = this.getConstants(ds);
+    var downTickDuration = {
+        MAX: downTickDurationMax,
+        DELTA: downTickDurationDelta,
+        MIN: downTickDurationMin
+    };
+
+    this.c = this.getConstants(ds, downTickDuration);
 
     this.status = {
         isGameOver: false,
@@ -357,8 +365,14 @@ blocksGame.update = function(c, status_, grid_, keyPressed) {
             );
             grid = processActionKeysResults.grid;
 
-            if (status.timeFrame >
-                (status.lastDownTick + c.DOWN_TICK_DURATION)) {
+            var nextDownTick = status.lastDownTick + Math.max(
+                c.downTickDuration.MAX - (
+                    c.downTickDuration.DELTA *
+                    status.finishedRowCount
+                ),
+                c.downTickDuration.MIN
+            );
+            if (status.timeFrame > nextDownTick) {
                 status.lastDownTick = status.timeFrame;
                 var processDownTickResults = this.processDownTick(
                     c,
@@ -554,7 +568,7 @@ blocksGame.main = function(timeFrame) {
     window.requestAnimationFrame(this.main.bind(this));
 };
 
-blocksGame.getConstants = function(ds) {
+blocksGame.getConstants = function(ds, downTickDuration) {
     var c = {};
 
     c.ds = ds;
@@ -632,7 +646,7 @@ blocksGame.getConstants = function(ds) {
     c.FONT_SUFFIX = 'px serif';
 
     // in milliseconds
-    c.DOWN_TICK_DURATION = 500;
+    c.downTickDuration = downTickDuration;
 
     return c;
 };
