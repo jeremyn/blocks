@@ -53,8 +53,11 @@ blocksGame.run = function (
 };
 
 blocksGame.getEmptyGrid = function(c) {
-    var numRows = (c.ds.displayHeight - c.ds.statusBarHeight) / c.ds.squareDim;
-    var numCols = c.ds.displayWidth / c.ds.squareDim;
+    var numRows = (
+        (c.ds.DISPLAY_HEIGHT - c.ds.STATUS_BAR_HEIGHT) /
+        c.ds.SQUARE_DIM
+    );
+    var numCols = c.ds.DISPLAY_WIDTH / c.ds.SQUARE_DIM;
     if ((numRows % 2 !== 0) || (numCols % 2 !== 0)) {
         throw new Error('bad grid dimensions');
     }
@@ -390,35 +393,35 @@ blocksGame.drawPauseScreen = function(c, ctx, pauseScreenText) {
     ctx.fillRect(
         0,
         0,
-        c.ds.displayWidth,
-        c.ds.displayHeight - c.ds.statusBarHeight
+        c.ds.DISPLAY_WIDTH,
+        c.ds.DISPLAY_HEIGHT - c.ds.STATUS_BAR_HEIGHT
     );
     ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
     ctx.fillRect(
         0,
         0,
-        c.ds.displayWidth,
-        c.ds.displayHeight - c.ds.statusBarHeight
+        c.ds.DISPLAY_WIDTH,
+        c.ds.DISPLAY_HEIGHT - c.ds.STATUS_BAR_HEIGHT
     );
 
-    var fontHeight = 0.5 * c.ds.statusBarHeight;
+    var fontHeight = 0.5 * c.ds.STATUS_BAR_HEIGHT;
     var pauseBoxHeight = 1.05 * fontHeight * (pauseScreenText.length + 0.5);
     var pauseBoxStartRow = (
-        0.5 * (c.ds.displayHeight - c.ds.statusBarHeight - pauseBoxHeight)
+        0.5 * (c.ds.DISPLAY_HEIGHT - c.ds.STATUS_BAR_HEIGHT - pauseBoxHeight)
     );
 
     ctx.fillStyle = c.colors.EMPTY;
     ctx.strokeStyle = c.colors.BORDER;
     ctx.fillRect(
-        0.5 * c.ds.squareDim,
+        0.5 * c.ds.SQUARE_DIM,
         pauseBoxStartRow,
-        c.ds.displayWidth - c.ds.squareDim,
+        c.ds.DISPLAY_WIDTH - c.ds.SQUARE_DIM,
         pauseBoxHeight
     );
     ctx.strokeRect(
-        0.5 * c.ds.squareDim,
+        0.5 * c.ds.SQUARE_DIM,
         pauseBoxStartRow,
-        c.ds.displayWidth - c.ds.squareDim,
+        c.ds.DISPLAY_WIDTH - c.ds.SQUARE_DIM,
         pauseBoxHeight
     );
 
@@ -428,15 +431,15 @@ blocksGame.drawPauseScreen = function(c, ctx, pauseScreenText) {
         var thisText = pauseScreenText[i];
         ctx.fillText(
             thisText,
-            c.ds.squareDim,
+            c.ds.SQUARE_DIM,
             pauseBoxStartRow + 1.055 * fontHeight * (i+1),
-            c.ds.displayWidth - 2 * c.ds.squareDim
+            c.ds.DISPLAY_WIDTH - 2 * c.ds.SQUARE_DIM
         );
     }
 };
 
 blocksGame.drawGrid = function(c, grid, ctx) {
-    ctx.lineWidth = c.ds.gridLineWidth;
+    ctx.lineWidth = c.ds.GRID_LINE_WIDTH;
     ctx.strokeStyle = c.colors.BORDER;
     var rowNum;
     var colNum;
@@ -444,10 +447,10 @@ blocksGame.drawGrid = function(c, grid, ctx) {
         for (colNum = 0; colNum < grid[0].length; colNum++) {
             ctx.fillStyle = grid[rowNum][colNum].state;
             ctx.fillRect(
-                colNum * c.ds.squareDim,
-                rowNum * c.ds.squareDim,
-                c.ds.squareDim,
-                c.ds.squareDim
+                colNum * c.ds.SQUARE_DIM,
+                rowNum * c.ds.SQUARE_DIM,
+                c.ds.SQUARE_DIM,
+                c.ds.SQUARE_DIM
             );
         }
     }
@@ -456,10 +459,10 @@ blocksGame.drawGrid = function(c, grid, ctx) {
         for (colNum = 0; colNum < grid[0].length; colNum++) {
             if (grid[rowNum][colNum].state !== c.colors.EMPTY) {
                 ctx.strokeRect(
-                    colNum * c.ds.squareDim,
-                    rowNum * c.ds.squareDim,
-                    c.ds.squareDim,
-                    c.ds.squareDim
+                    colNum * c.ds.SQUARE_DIM,
+                    rowNum * c.ds.SQUARE_DIM,
+                    c.ds.SQUARE_DIM,
+                    c.ds.SQUARE_DIM
                 );
             }
         }
@@ -470,30 +473,37 @@ blocksGame.drawStatusBar = function(c, status, ctx) {
     ctx.fillStyle = c.colors.EMPTY;
     ctx.fillRect(
         0,
-        c.ds.displayHeight - c.ds.statusBarHeight,
-        c.ds.displayWidth,
-        c.ds.statusBarHeight
+        c.ds.DISPLAY_HEIGHT - c.ds.STATUS_BAR_HEIGHT,
+        c.ds.DISPLAY_WIDTH,
+        c.ds.STATUS_BAR_HEIGHT
     );
 
     var scoreText = 'Lines completed: ' + status.finishedRowCount;
-    var fontHeight = 0.5 * c.ds.statusBarHeight;
+    var fontHeight = 0.5 * c.ds.STATUS_BAR_HEIGHT;
     ctx.font = fontHeight + c.FONT_SUFFIX;
     ctx.fillStyle = c.colors.BORDER;
     ctx.fillText(
         scoreText,
-        (0.5 * c.ds.displayWidth) - (0.5 * ctx.measureText(scoreText).width),
-        c.ds.displayHeight - (0.5 * c.ds.statusBarHeight) + (0.35 * fontHeight)
+        (0.5 * c.ds.DISPLAY_WIDTH) - (0.5 * ctx.measureText(scoreText).width),
+        (
+            c.ds.DISPLAY_HEIGHT -
+            (0.5 * c.ds.STATUS_BAR_HEIGHT) +
+            (0.35 * fontHeight)
+        )
     );
 };
 
 blocksGame.drawBorders = function(c, ctx) {
     ctx.strokeStyle = c.colors.BORDER;
-    ctx.lineWidth = c.ds.borderLineWidth;
-    ctx.strokeRect(0, 0, c.ds.displayWidth, c.ds.displayHeight);
-    ctx.lineWidth = 0.5 * c.ds.borderLineWidth;
+    ctx.lineWidth = c.ds.BORDER_LINE_WIDTH;
+    ctx.strokeRect(0, 0, c.ds.DISPLAY_WIDTH, c.ds.DISPLAY_HEIGHT);
+    ctx.lineWidth = 0.5 * c.ds.BORDER_LINE_WIDTH;
     ctx.beginPath();
-    ctx.moveTo(0, c.ds.displayHeight - c.ds.statusBarHeight);
-    ctx.lineTo(c.ds.displayWidth, c.ds.displayHeight - c.ds.statusBarHeight);
+    ctx.moveTo(0, c.ds.DISPLAY_HEIGHT - c.ds.STATUS_BAR_HEIGHT);
+    ctx.lineTo(
+        c.ds.DISPLAY_WIDTH,
+        c.ds.DISPLAY_HEIGHT - c.ds.STATUS_BAR_HEIGHT
+    );
     ctx.closePath();
     ctx.stroke();
 };
@@ -576,12 +586,12 @@ blocksGame.getConstants = function(
     var c = {};
 
     c.ds = {
-        displayHeight: displayHeight,
-        displayWidth: displayWidth,
-        squareDim: squareDim,
-        statusBarHeight: statusBarHeight,
-        borderLineWidth: borderLineWidth,
-        gridLineWidth: gridLineWidth
+        DISPLAY_HEIGHT: displayHeight,
+        DISPLAY_WIDTH: displayWidth,
+        SQUARE_DIM: squareDim,
+        STATUS_BAR_HEIGHT: statusBarHeight,
+        BORDER_LINE_WIDTH: borderLineWidth,
+        GRID_LINE_WIDTH: gridLineWidth
     };
 
     c.downTickDuration = {
