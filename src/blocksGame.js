@@ -283,35 +283,33 @@ blocksGame.processDownTick = function(c, status_, grid_) {
     var status = this.getStatusCopy(status_);
     var grid = this.getGridCopy(grid_);
     var keepGoing = true;
-    if (status.timeFrame > (status.lastDownTick + c.DOWN_TICK_DURATION)) {
-        status.lastDownTick = status.timeFrame;
-        var moveActiveBlockResults = this.moveActiveBlock(
-            c,
-            grid,
-            c.actions.DOWN
-        );
-        var moveWorked = moveActiveBlockResults.moveIsAllowed;
-        grid = moveActiveBlockResults.grid;
 
-        if (!moveWorked) {
-            for (var rowNum = 0; rowNum < grid.length; rowNum++) {
-                for (var colNum = 0; colNum < grid[0].length; colNum++) {
-                    grid[rowNum][colNum].isActive = false;
-                }
+    var moveActiveBlockResults = this.moveActiveBlock(
+        c,
+        grid,
+        c.actions.DOWN
+    );
+    var moveWorked = moveActiveBlockResults.moveIsAllowed;
+    grid = moveActiveBlockResults.grid;
+
+    if (!moveWorked) {
+        for (var rowNum = 0; rowNum < grid.length; rowNum++) {
+            for (var colNum = 0; colNum < grid[0].length; colNum++) {
+                grid[rowNum][colNum].isActive = false;
             }
-
-            var clearMatchedRowsResults = this.clearMatchedRows(
-                c,
-                status,
-                grid
-            );
-            status = clearMatchedRowsResults.status;
-            grid = clearMatchedRowsResults.grid;
-
-            var addNewBlockResults = this.addNewBlock(c, grid);
-            grid = addNewBlockResults.grid;
-            keepGoing = addNewBlockResults.addBlockSuccessful;
         }
+
+        var clearMatchedRowsResults = this.clearMatchedRows(
+            c,
+            status,
+            grid
+        );
+        status = clearMatchedRowsResults.status;
+        grid = clearMatchedRowsResults.grid;
+
+        var addNewBlockResults = this.addNewBlock(c, grid);
+        grid = addNewBlockResults.grid;
+        keepGoing = addNewBlockResults.addBlockSuccessful;
     }
     status.isGameOver = !keepGoing;
     return {
@@ -361,9 +359,17 @@ blocksGame.update = function(c, status_, grid_, keyPressed) {
             );
             grid = processActionKeysResults.grid;
 
-            var processDownTickResults = this.processDownTick(c, status, grid);
-            status = processDownTickResults.status;
-            grid = processDownTickResults.grid;
+            if (status.timeFrame >
+                (status.lastDownTick + c.DOWN_TICK_DURATION)) {
+                status.lastDownTick = status.timeFrame;
+                var processDownTickResults = this.processDownTick(
+                    c,
+                    status,
+                    grid
+                );
+                status = processDownTickResults.status;
+                grid = processDownTickResults.grid;
+            }
         }
     }
     return {
