@@ -1,11 +1,15 @@
 # Blocks
 
-*Blocks* is a simple game where you arrange falling blocks into lines on a grid. The basic idea is completely unoriginal. The game is written using HTML5 and JavaScript.
+By: [Jeremy Nation](mailto:jeremy@jeremynation.me)
 
-# Instructions
+## Description
+
+*Blocks* is a simple game where the player arranges falling blocks into lines on a grid. The speed of the falling blocks increases as the player completes more lines. The basic idea is completely unoriginal. The game is written using HTML5 and JavaScript.
+
+## Instructions
 
 Open `src\index.html` in a browser and play.
 
-# License
+## License
 
 GPLv3 or later (see included `LICENSE` file).
