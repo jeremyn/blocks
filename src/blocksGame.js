@@ -45,7 +45,7 @@ blocksGame.run = function (
     ).status;
 
     this.keyPressed = new this.KeyPressedClass();
-    this.keyPressed.initialize();
+    this.keyPressed.initialize(this.c.keyCodes);
     document.addEventListener('keydown', this.keyPressed, false);
     document.addEventListener('keyup', this.keyPressed, false);
 
@@ -727,19 +727,29 @@ blocksGame.KeyPressedClass.prototype._set = function(keyCode, which, value) {
     this.values[keyCode][which] = value;
 };
 
-blocksGame.KeyPressedClass.prototype.initialize = function() {
+blocksGame.KeyPressedClass.prototype.initialize = function(keyCodes) {
+    this.handledKeyCodes = [];
+    for (var keyCode in keyCodes) {
+        if (keyCodes.hasOwnProperty(keyCode)) {
+            this.handledKeyCodes.push(keyCodes[keyCode])
+        }
+    }
     this.values = {};
 };
 
 // This function is used implicitly with document.addEventListener.
 blocksGame.KeyPressedClass.prototype.handleEvent = function(e) {
-    switch(e.type) {
-        case 'keydown':
-            this._set(e.keyCode, 'current', true);
-            break;
-        case 'keyup':
-            this._set(e.keyCode, 'current', false);
-            break;
+    var isHandledKeyCode = (this.handledKeyCodes.indexOf(e.keyCode) !== -1);
+    if (isHandledKeyCode) {
+        e.preventDefault();
+        switch(e.type) {
+            case 'keydown':
+                this._set(e.keyCode, 'current', true);
+                break;
+            case 'keyup':
+                this._set(e.keyCode, 'current', false);
+                break;
+        }
     }
 };
 
