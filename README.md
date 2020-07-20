@@ -8,7 +8,7 @@ By: [Jeremy Nation](mailto:jeremy@jeremynation.me)
 
 ## Instructions
 
-Open `src\index.html` in a browser and play.
+Open `index.html` in a browser and play.
 
 ## License
 
