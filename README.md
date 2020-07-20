@@ -8,7 +8,7 @@ By: [Jeremy Nation](mailto:jeremy@jeremynation.me)
 
 ## Instructions
 
-Open `index.html` in a browser and play.
+Open `index.html` in a browser or visit [https://jeremyn.github.io/blocks/](https://jeremyn.github.io/blocks) and play.
 
 ## License
 
