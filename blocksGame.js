@@ -1,5 +1,5 @@
-/* Copyright 2016, Jeremy Nation <jeremy@jeremynation.me>
- * Released under the GPLv3.
+/* Copyright Jeremy Nation <jeremy@jeremynation.me>.
+ * Licensed under the GNU General Public License (GPL) v3.
  */
 'use strict';
 var blocksGame = {};
